@@ -43,6 +43,7 @@ export interface UIState {
   schedule: Schedule;
   violations: Violation[];
   onUpdate: ScheduleUpdateHandler;
+  focusRowId: string | null;
 }
 
 // Create the UI controller
@@ -54,7 +55,8 @@ export function createUI(
   const state: UIState = {
     schedule: { rows: [] },
     violations: [],
-    onUpdate: () => {}
+    onUpdate: () => {},
+    focusRowId: null
   };
 
   return state;
@@ -75,6 +77,18 @@ export function renderTable(
   }
 
   renderViolations(state, constraintPanel, violationList);
+
+  // Focus the daytime input for the newly added row
+  if (state.focusRowId) {
+    const rowToFocus = tableBody.querySelector(`tr[data-row-id="${state.focusRowId}"]`);
+    if (rowToFocus) {
+      const daytimeInput = rowToFocus.querySelector('.daytime-cell input') as HTMLInputElement | null;
+      if (daytimeInput) {
+        daytimeInput.focus();
+      }
+    }
+    state.focusRowId = null;
+  }
 }
 
 // Get the previous row's night value
@@ -193,6 +207,7 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
     const newRow = createRow(newDate);
     state.schedule = insertRowAtIndex(state.schedule, index, newRow);
     recalculateDates(state);
+    state.focusRowId = newRow.id;
     state.onUpdate(state.schedule);
   });
 
@@ -205,6 +220,7 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
     const newRow = createRow(newDate);
     state.schedule = insertRowAtIndex(state.schedule, index + 1, newRow);
     recalculateDates(state);
+    state.focusRowId = newRow.id;
     state.onUpdate(state.schedule);
   });
 
@@ -391,6 +407,7 @@ export function addRow(state: UIState): void {
   const newDate = lastRow ? addDays(lastRow.date, 1) : new Date();
   const newRow = createRow(newDate);
   state.schedule = addRowToSchedule(state.schedule, newRow);
+  state.focusRowId = newRow.id;
   state.onUpdate(state.schedule);
 }
 
