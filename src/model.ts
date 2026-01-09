@@ -215,6 +215,42 @@ export function autoPopulateDates(schedule: Schedule): Schedule {
   };
 }
 
+// Recalculate dates based on first row, keeping pinned columns (Other Event, Other Location, Attend)
+// attached to their original calendar dates. If a date falls outside the new range, its pinned data is lost.
+export function recalculateDates(schedule: Schedule): Schedule {
+  if (schedule.rows.length === 0) return schedule;
+
+  // Collect pinned data (Other Event, Other Location, Attend) with their original dates
+  const pinnedByDate = new Map<string, { otherEvent: Option<DaytimeType>; otherLocation: Option<string>; attend: boolean }>();
+  for (const row of schedule.rows) {
+    if (isSome(row.otherEvent) || isSome(row.otherLocation) || row.attend) {
+      pinnedByDate.set(formatDate(row.date), {
+        otherEvent: row.otherEvent,
+        otherLocation: row.otherLocation,
+        attend: row.attend
+      });
+    }
+  }
+
+  // Recalculate row dates and re-assign pinned data by date
+  const firstDate = schedule.rows[0].date;
+  const newRows = schedule.rows.map((row, index) => {
+    const newDate = addDays(firstDate, index);
+    const newDateKey = formatDate(newDate);
+    const pinned = pinnedByDate.get(newDateKey);
+
+    return {
+      ...row,
+      date: newDate,
+      otherEvent: pinned?.otherEvent ?? none<DaytimeType>(),
+      otherLocation: pinned?.otherLocation ?? none<string>(),
+      attend: pinned?.attend ?? false
+    };
+  });
+
+  return { rows: newRows };
+}
+
 // Serialization for Copy/Paste
 
 interface SerializedDaytime {

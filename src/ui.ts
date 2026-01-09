@@ -28,7 +28,8 @@ import {
   isSome,
   isNone,
   some,
-  none
+  none,
+  recalculateDates
 } from './model.js';
 
 import {
@@ -206,7 +207,7 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
     const newDate = prevRow ? addDays(prevRow.date, 1) : addDays(row.date, -1);
     const newRow = createRow(newDate);
     state.schedule = insertRowAtIndex(state.schedule, index, newRow);
-    recalculateDates(state);
+    recalculateDatesInState(state);
     state.focusRowId = newRow.id;
     state.onUpdate(state.schedule);
   });
@@ -219,7 +220,7 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
     const newDate = addDays(row.date, 1);
     const newRow = createRow(newDate);
     state.schedule = insertRowAtIndex(state.schedule, index + 1, newRow);
-    recalculateDates(state);
+    recalculateDatesInState(state);
     state.focusRowId = newRow.id;
     state.onUpdate(state.schedule);
   });
@@ -232,8 +233,11 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
     if (isPersonal(row.daytime)) {
       if (!confirm('Delete this personal day?')) return;
     }
+
     state.schedule = removeRowFromSchedule(state.schedule, row.id);
-    recalculateDates(state);
+    if (state.schedule.rows.length > 0) {
+      state.schedule = recalculateDates(state.schedule);
+    }
     state.onUpdate(state.schedule);
   });
 
@@ -254,7 +258,7 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
       const index = getRowIndex(state.schedule, row.id);
       if (index === 0) {
         state.schedule = updateRowInSchedule(state.schedule, row.id, { date: newDate });
-        recalculateDates(state);
+        recalculateDatesInState(state);
         state.onUpdate(state.schedule);
       }
     }
@@ -354,17 +358,10 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
   return tr;
 }
 
-// Recalculate dates based on first row
-function recalculateDates(state: UIState): void {
+// Recalculate dates in place on the state
+function recalculateDatesInState(state: UIState): void {
   if (state.schedule.rows.length === 0) return;
-
-  const firstDate = state.schedule.rows[0].date;
-  state.schedule = {
-    rows: state.schedule.rows.map((row, index) => ({
-      ...row,
-      date: addDays(firstDate, index)
-    }))
-  };
+  state.schedule = recalculateDates(state.schedule);
 }
 
 // Render constraint violations

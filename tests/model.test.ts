@@ -17,6 +17,7 @@ import {
   serializeSchedule,
   deserializeSchedule,
   autoPopulateDates,
+  recalculateDates,
   some,
   none,
   isSome,
@@ -210,6 +211,144 @@ describe('Schedule operations', () => {
     expect(formatDate(schedule.rows[0].date)).toBe('2024-01-15');
     expect(formatDate(schedule.rows[1].date)).toBe('2024-01-16');
     expect(formatDate(schedule.rows[2].date)).toBe('2024-01-17');
+  });
+});
+
+describe('Date recalculation with pinned columns', () => {
+  it('keeps pinned data attached to original date when shifting forward', () => {
+    // Start with schedule: Jan 15, 16, 17
+    // Other event on Jan 17
+    // Change first date to Jan 16 -> schedule becomes Jan 16, 17, 18
+    // Other event should stay on Jan 17 (now row index 1)
+    let schedule = createEmptySchedule();
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 15)));
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 16)));
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 17), {
+      otherEvent: some({ kind: 'personal' }),
+      otherLocation: some('Conference Center')
+    }));
+
+    // Simulate changing first date to Jan 16
+    schedule.rows[0] = { ...schedule.rows[0], date: new Date(2024, 0, 16) };
+    schedule = recalculateDates(schedule);
+
+    // Dates should be Jan 16, 17, 18
+    expect(formatDate(schedule.rows[0].date)).toBe('2024-01-16');
+    expect(formatDate(schedule.rows[1].date)).toBe('2024-01-17');
+    expect(formatDate(schedule.rows[2].date)).toBe('2024-01-18');
+
+    // Other event should now be on row 1 (Jan 17), not row 2
+    expect(isNone(schedule.rows[0].otherEvent)).toBe(true);
+    expect(isSome(schedule.rows[1].otherEvent)).toBe(true);
+    expect(isSome(schedule.rows[1].otherLocation)).toBe(true);
+    if (isSome(schedule.rows[1].otherLocation)) {
+      expect(schedule.rows[1].otherLocation.value).toBe('Conference Center');
+    }
+    expect(isNone(schedule.rows[2].otherEvent)).toBe(true);
+  });
+
+  it('keeps pinned data attached when shifting backward', () => {
+    // Start with schedule: Jan 15, 16, 17
+    // Other event on Jan 16 (row 1)
+    // Change first date to Jan 14 -> schedule becomes Jan 14, 15, 16
+    // Other event should stay on Jan 16 (now row index 2)
+    let schedule = createEmptySchedule();
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 15)));
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 16), {
+      otherEvent: some({ kind: 'organization', name: 'Meeting' }),
+      otherLocation: some('Office')
+    }));
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 17)));
+
+    // Simulate changing first date to Jan 14
+    schedule.rows[0] = { ...schedule.rows[0], date: new Date(2024, 0, 14) };
+    schedule = recalculateDates(schedule);
+
+    // Dates should be Jan 14, 15, 16
+    expect(formatDate(schedule.rows[0].date)).toBe('2024-01-14');
+    expect(formatDate(schedule.rows[1].date)).toBe('2024-01-15');
+    expect(formatDate(schedule.rows[2].date)).toBe('2024-01-16');
+
+    // Other event should now be on row 2 (Jan 16)
+    expect(isNone(schedule.rows[0].otherEvent)).toBe(true);
+    expect(isNone(schedule.rows[1].otherEvent)).toBe(true);
+    expect(isSome(schedule.rows[2].otherEvent)).toBe(true);
+    if (isSome(schedule.rows[2].otherEvent)) {
+      expect(schedule.rows[2].otherEvent.value).toEqual({ kind: 'organization', name: 'Meeting' });
+    }
+  });
+
+  it('drops pinned data when date falls outside schedule range', () => {
+    // Start with schedule: Jan 15, 16, 17
+    // Other event on Jan 16 (row 1)
+    // Change first date to Jan 20 -> schedule becomes Jan 20, 21, 22
+    // Other event on Jan 16 should be lost (no matching row)
+    let schedule = createEmptySchedule();
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 15)));
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 16), {
+      otherEvent: some({ kind: 'personal' }),
+      otherLocation: some('Home')
+    }));
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 17)));
+
+    // Simulate changing first date to Jan 20
+    schedule.rows[0] = { ...schedule.rows[0], date: new Date(2024, 0, 20) };
+    schedule = recalculateDates(schedule);
+
+    // All rows should have no Other data (Jan 16 is outside Jan 20-22 range)
+    expect(isNone(schedule.rows[0].otherEvent)).toBe(true);
+    expect(isNone(schedule.rows[1].otherEvent)).toBe(true);
+    expect(isNone(schedule.rows[2].otherEvent)).toBe(true);
+  });
+
+  it('handles multiple pinned events on different dates', () => {
+    let schedule = createEmptySchedule();
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 15)));
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 16), {
+      otherEvent: some({ kind: 'organization', name: 'Event A' })
+    }));
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 17), {
+      otherEvent: some({ kind: 'organization', name: 'Event B' })
+    }));
+
+    // Shift forward by one day: Jan 16, 17, 18
+    // Event A (Jan 16) should stay on row 0, Event B (Jan 17) should be on row 1
+    schedule.rows[0] = { ...schedule.rows[0], date: new Date(2024, 0, 16) };
+    schedule = recalculateDates(schedule);
+
+    expect(isSome(schedule.rows[0].otherEvent)).toBe(true);
+    if (isSome(schedule.rows[0].otherEvent)) {
+      expect(schedule.rows[0].otherEvent.value).toEqual({ kind: 'organization', name: 'Event A' });
+    }
+    expect(isSome(schedule.rows[1].otherEvent)).toBe(true);
+    if (isSome(schedule.rows[1].otherEvent)) {
+      expect(schedule.rows[1].otherEvent.value).toEqual({ kind: 'organization', name: 'Event B' });
+    }
+    expect(isNone(schedule.rows[2].otherEvent)).toBe(true);
+  });
+
+  it('preserves attend checkbox when recalculating', () => {
+    let schedule = createEmptySchedule();
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 15)));
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 16), {
+      attend: true
+    }));
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 17)));
+
+    // Shift forward by one day
+    schedule.rows[0] = { ...schedule.rows[0], date: new Date(2024, 0, 16) };
+    schedule = recalculateDates(schedule);
+
+    // Attend should now be on row 0 (Jan 16)
+    expect(schedule.rows[0].attend).toBe(true);
+    expect(schedule.rows[1].attend).toBe(false);
+    expect(schedule.rows[2].attend).toBe(false);
+  });
+
+  it('returns empty schedule unchanged', () => {
+    const schedule = createEmptySchedule();
+    const result = recalculateDates(schedule);
+    expect(result.rows.length).toBe(0);
   });
 });
 
