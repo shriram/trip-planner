@@ -95,7 +95,7 @@ export function parseDate(str: string): Date | null {
 
 // Daytime parsing and formatting
 
-const TRAVEL_ARROW_REGEX = /^(.+?)\s*(?:-->|->|⭢)\s*(.+)$/;
+const TRAVEL_ARROW_REGEX = /^(.+?)\s*(?:-->|->|→|⭢)\s*(.+)$/;
 
 export function parseDaytime(str: string): DaytimeType {
   const trimmed = str.trim();

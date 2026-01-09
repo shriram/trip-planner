@@ -128,6 +128,7 @@ describe('Daytime parsing', () => {
     expect(parseDaytime('Boston --> NYC')).toEqual({ kind: 'travel', from: 'Boston', to: 'NYC' });
     expect(parseDaytime('Boston -> NYC')).toEqual({ kind: 'travel', from: 'Boston', to: 'NYC' });
     expect(parseDaytime('Boston ⭢ NYC')).toEqual({ kind: 'travel', from: 'Boston', to: 'NYC' });
+    expect(parseDaytime('Boston → NYC')).toEqual({ kind: 'travel', from: 'Boston', to: 'NYC' });
   });
 
   it('parses organization names', () => {
