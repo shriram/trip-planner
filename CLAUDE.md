@@ -22,4 +22,15 @@ Make sure you have good tests. Use a testing harness. Before claiming that a fea
 
 Follow a model-view architecture so that you can test the models and functions extensively, even if the UI isn't very tested.
 
-Please create a CLAUDE.md with instructions to yourself as you go along.
+TECH STACK
+- Plain HTML/CSS/TypeScript (no framework initially)
+- Static web page (no server)
+- JSON for data persistence (Copy/Paste)
+- HTML for pretty-print output
+
+PROJECT STRUCTURE
+- src/model.ts - data types and pure functions
+- src/constraints.ts - constraint checking and repair suggestions
+- src/ui.ts - DOM manipulation
+- src/main.ts - entry point
+- tests/ - test files

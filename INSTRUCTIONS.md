@@ -21,6 +21,23 @@ When I change a schedule around, it's not as simple as just copying cells in a s
 
 In terms of auto-populating days, etc., you can assume all days will be after 2000 and before 2100. You should signal an error if given a day outside this range. With that info you can accurately figure out the days of the week, leap years, etc., so I don't need to do it.
 
+SHIFTING BEHAVIOR
+
+When shifting content (e.g., "move everything from row 5 forward by 2 days"):
+- Only Daytime and Night columns shift; Date, Day of Week, and Other Event columns stay fixed (they represent external dependencies)
+- Organization visits that land on weekends automatically move to the next Monday
+- Travel days are inserted as needed to maintain location continuity
+- Constraint violations trigger a repair dialog that iteratively suggests fixes
+
+CONSTRAINTS
+- Organization visits cannot be on weekends
+- Attend=true Other Events are date-fixed (immovable)
+- Location continuity: if Night[N] ≠ Night[N+1], there must be travel or a travel Daytime entry
+- Personal days are freely movable but prompt before deletion
+
+FUTURE ENHANCEMENTS
+- Support for split days (e.g., org visit in AM + travel in PM)
+
 This is for starters. We'll explore as we go along.
 
 Note that I often need up to 30 days of planning, so don't make the UI too generous with space, while of course also not making it cramped. The size of things in Google Sheets works fairly well, though you can probably make it prettier than that!
