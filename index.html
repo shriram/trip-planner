@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trip Planner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>Trip Planner</h1>
+      <div class="toolbar">
+        <button id="add-row">+ Add Row</button>
+        <button id="copy-data">Copy</button>
+        <button id="paste-data">Paste</button>
+        <button id="pretty-print">Pretty Print</button>
+      </div>
+    </header>
+    <main>
+      <table id="schedule-table">
+        <thead>
+          <tr>
+            <th class="col-actions"></th>
+            <th class="col-date">Date</th>
+            <th class="col-day">Day</th>
+            <th class="col-daytime">Daytime</th>
+            <th class="col-night">Night</th>
+            <th class="col-other-event">Other Event</th>
+            <th class="col-other-location">Other Location</th>
+            <th class="col-attend">Attend</th>
+          </tr>
+        </thead>
+        <tbody id="schedule-body">
+        </tbody>
+      </table>
+    </main>
+    <div id="constraint-panel" class="hidden">
+      <h3>Constraint Violations</h3>
+      <ul id="violation-list"></ul>
+    </div>
+  </div>
+  <script type="module" src="dist/bundle.js"></script>
+</body>
+</html>

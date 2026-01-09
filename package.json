@@ -1,0 +1,17 @@
+{
+  "name": "trip-planner",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc && esbuild src/main.ts --bundle --outfile=dist/bundle.js --format=esm",
+    "watch": "esbuild src/main.ts --bundle --outfile=dist/bundle.js --format=esm --watch",
+    "serve": "npx serve .",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "esbuild": "^0.20.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.2.0"
+  }
+}

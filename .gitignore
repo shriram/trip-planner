@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# TypeScript
+*.tsbuildinfo
+
+# Server state
+.server-port
+.server-pid
+
+# OS files
+.DS_Store

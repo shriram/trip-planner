@@ -35,6 +35,17 @@ CONSTRAINTS
 - Location continuity: if Night[N] ≠ Night[N+1], there must be travel or a travel Daytime entry
 - Personal days are freely movable but prompt before deletion
 
+AUTO-FILL BEHAVIORS
+- Travel "X → Y": auto-fill Night with Y (prompt if already set to something else)
+- Non-travel daytime: auto-fill Night from previous row's Night (if unset)
+- Personal day between different locations: prompt to convert to travel
+
+UI NOTES
+- Option<T> distinguishes "not set" from "set to value"
+- Weekend rows: only Date and Day columns are highlighted (light yellow)
+- Row actions: ↑+ (insert above), ↓+ (insert below), × (delete)
+- Deleting/inserting rows recalculates all dates from first row
+
 FUTURE ENHANCEMENTS
 - Support for split days (e.g., org visit in AM + travel in PM)
 

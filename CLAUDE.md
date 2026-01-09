@@ -29,8 +29,14 @@ TECH STACK
 - HTML for pretty-print output
 
 PROJECT STRUCTURE
-- src/model.ts - data types and pure functions
+- src/model.ts - data types, Option<T>, date utilities, serialization, pretty-print
 - src/constraints.ts - constraint checking and repair suggestions
-- src/ui.ts - DOM manipulation
+- src/ui.ts - DOM manipulation, smart auto-fill behaviors
 - src/main.ts - entry point
-- tests/ - test files
+- tests/ - vitest tests for model and constraints
+
+BUILD & RUN
+- `make serve` - build and open in browser (random port)
+- `make stop` - stop server
+- `npm test` - run tests
+- `npm run build` - build only
