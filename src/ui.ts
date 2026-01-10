@@ -135,7 +135,7 @@ export function createUI(
   violationList: HTMLUListElement
 ): UIState {
   const state: UIState = {
-    schedule: { rows: [] },
+    schedule: { rows: [], placeDisambiguations: {}, geocodedPlaces: {}, hiddenPlaces: {} },
     violations: [],
     onUpdate: () => {},
     focusRowId: null,

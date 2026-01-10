@@ -412,6 +412,63 @@ describe('Serialization', () => {
 
   it('rejects invalid JSON', () => {
     expect(deserializeSchedule('not json')).toBeNull();
-    expect(deserializeSchedule('{"version": 2}')).toBeNull();
+    expect(deserializeSchedule('{"version": 99}')).toBeNull();
+  });
+
+  it('handles version 1 data (backwards compatible)', () => {
+    const v1Json = JSON.stringify({
+      version: 1,
+      rows: [{
+        date: '2024-01-15',
+        daytime: { set: true, value: { kind: 'personal' } },
+        night: { set: true, value: 'Boston' },
+        otherEvent: { set: false },
+        otherLocation: { set: false },
+        attend: false
+      }]
+    });
+
+    const restored = deserializeSchedule(v1Json);
+    expect(restored).not.toBeNull();
+    expect(restored!.rows.length).toBe(1);
+    // v1 data should get empty disambiguations and geocodedPlaces
+    expect(restored!.placeDisambiguations).toEqual({});
+    expect(restored!.geocodedPlaces).toEqual({});
+  });
+
+  it('serializes and deserializes place disambiguations and geocoded places', () => {
+    let schedule = createEmptySchedule();
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 15), { night: some('Edinburgh') }));
+    schedule.placeDisambiguations = { 'Edinburgh': 'Scotland' };
+    schedule.geocodedPlaces = {
+      'Edinburgh': { lat: 55.95, lng: -3.19, displayName: 'Edinburgh, Scotland, UK', query: 'Edinburgh, Scotland' }
+    };
+
+    const json = serializeSchedule(schedule);
+    const restored = deserializeSchedule(json);
+
+    expect(restored).not.toBeNull();
+    expect(restored!.placeDisambiguations).toEqual({ 'Edinburgh': 'Scotland' });
+    expect(restored!.geocodedPlaces).toEqual({
+      'Edinburgh': { lat: 55.95, lng: -3.19, displayName: 'Edinburgh, Scotland, UK', query: 'Edinburgh, Scotland' }
+    });
+  });
+
+  it('handles old geocoded data without query field', () => {
+    // Simulate old v2 data without query field
+    const oldJson = JSON.stringify({
+      version: 2,
+      rows: [],
+      placeDisambiguations: {},
+      geocodedPlaces: {
+        'Boston': { lat: 42.36, lng: -71.06, displayName: 'Boston, MA, USA' }
+      },
+      hiddenPlaces: {}
+    });
+
+    const restored = deserializeSchedule(oldJson);
+    expect(restored).not.toBeNull();
+    // Should have empty query, which will trigger re-geocode if disambiguation changes
+    expect(restored!.geocodedPlaces['Boston'].query).toBe('');
   });
 });

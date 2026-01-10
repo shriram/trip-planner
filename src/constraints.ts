@@ -98,6 +98,7 @@ export function suggestRepairs(schedule: Schedule, violations: Violation[]): Rep
           violation,
           description: `Change "${formatDaytime(daytimeValue)}" to "personal" on ${getDayOfWeek(row.date)}`,
           apply: (s) => ({
+            ...s,
             rows: s.rows.map((r, i) =>
               i === violation.rowIndex
                 ? { ...r, daytime: some({ kind: 'personal' } as DaytimeType) }
@@ -119,6 +120,7 @@ export function suggestRepairs(schedule: Schedule, violations: Violation[]): Rep
               violation,
               description: `Set daytime to travel: "${from} → ${to}"`,
               apply: (s) => ({
+                ...s,
                 rows: s.rows.map((r, i) =>
                   i === violation.rowIndex
                     ? { ...r, daytime: some({ kind: 'travel', from, to } as DaytimeType) }

@@ -10,6 +10,7 @@ import {
   copyHtmlToClipboard,
   copyMarkdownToClipboard
 } from './ui.js';
+import { showMapModal } from './mapUI.js';
 
 function main(): void {
   const tableBody = document.getElementById('schedule-body') as HTMLTableSectionElement;
@@ -21,6 +22,7 @@ function main(): void {
   const printDropdown = document.getElementById('print-dropdown')?.parentElement as HTMLElement;
   const printHtmlBtn = document.getElementById('print-html') as HTMLAnchorElement;
   const printMarkdownBtn = document.getElementById('print-markdown') as HTMLAnchorElement;
+  const mapBtn = document.getElementById('map-btn') as HTMLButtonElement;
 
   if (!tableBody || !constraintPanel || !violationList) {
     console.error('Required DOM elements not found');
@@ -38,7 +40,7 @@ function main(): void {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const initialRow = createRow(today);
-  state.schedule = { rows: [initialRow] };
+  state.schedule = { rows: [initialRow], placeDisambiguations: {}, geocodedPlaces: {}, hiddenPlaces: {} };
   state.violations = checkConstraints(state.schedule);
   updateState(state, state.schedule, tableBody, constraintPanel, violationList);
 
@@ -97,6 +99,13 @@ function main(): void {
     } else {
       alert('Failed to copy Markdown to clipboard');
     }
+  });
+
+  // Map button handler
+  mapBtn?.addEventListener('click', () => {
+    showMapModal(state.schedule, (updatedSchedule) => {
+      state.onUpdate(updatedSchedule);
+    });
   });
 }
 

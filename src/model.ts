@@ -43,6 +43,20 @@ export interface ScheduleRow {
 
 export interface Schedule {
   rows: ScheduleRow[];
+  /** Maps raw place names to disambiguation hints (e.g., "Edinburgh" -> "Scotland") */
+  placeDisambiguations: Record<string, string>;
+  /** Cached geocoded coordinates for disambiguated place names */
+  geocodedPlaces: Record<string, GeoLocation>;
+  /** Places to hide from the map (for focusing on trip destinations) */
+  hiddenPlaces: Record<string, boolean>;
+}
+
+/** Geocoded location with lat/lng coordinates */
+export interface GeoLocation {
+  lat: number;
+  lng: number;
+  displayName: string;  // Full name returned by geocoder
+  query: string;        // The query string used for geocoding (for cache invalidation)
 }
 
 // Date utilities
@@ -161,15 +175,15 @@ export function createRow(date: Date, overrides?: Partial<Omit<ScheduleRow, 'id'
 }
 
 export function createEmptySchedule(): Schedule {
-  return { rows: [] };
+  return { rows: [], placeDisambiguations: {}, geocodedPlaces: {}, hiddenPlaces: {} };
 }
 
 export function addRowToSchedule(schedule: Schedule, row: ScheduleRow): Schedule {
-  return { rows: [...schedule.rows, row] };
+  return { ...schedule, rows: [...schedule.rows, row] };
 }
 
 export function removeRowFromSchedule(schedule: Schedule, rowId: string): Schedule {
-  return { rows: schedule.rows.filter(r => r.id !== rowId) };
+  return { ...schedule, rows: schedule.rows.filter(r => r.id !== rowId) };
 }
 
 export function updateRowInSchedule(
@@ -178,6 +192,7 @@ export function updateRowInSchedule(
   updates: Partial<Omit<ScheduleRow, 'id'>>
 ): Schedule {
   return {
+    ...schedule,
     rows: schedule.rows.map(r =>
       r.id === rowId ? { ...r, ...updates } : r
     )
@@ -187,7 +202,7 @@ export function updateRowInSchedule(
 export function insertRowAtIndex(schedule: Schedule, index: number, row: ScheduleRow): Schedule {
   const newRows = [...schedule.rows];
   newRows.splice(index, 0, row);
-  return { rows: newRows };
+  return { ...schedule, rows: newRows };
 }
 
 export function getRowByIndex(schedule: Schedule, index: number): ScheduleRow | undefined {
@@ -208,6 +223,7 @@ export function autoPopulateDates(schedule: Schedule): Schedule {
 
   const firstRow = schedule.rows[0];
   return {
+    ...schedule,
     rows: schedule.rows.map((row, index) => ({
       ...row,
       date: addDays(firstRow.date, index)
@@ -248,7 +264,7 @@ export function recalculateDates(schedule: Schedule): Schedule {
     };
   });
 
-  return { rows: newRows };
+  return { ...schedule, rows: newRows };
 }
 
 // Serialization for Copy/Paste
@@ -274,9 +290,19 @@ interface SerializedRow {
   attend: boolean;
 }
 
+interface SerializedGeoLocation {
+  lat: number;
+  lng: number;
+  displayName: string;
+  query?: string;  // Optional for backward compatibility with old saved data
+}
+
 interface SerializedSchedule {
-  version: 1;
+  version: 1 | 2;
   rows: SerializedRow[];
+  placeDisambiguations?: Record<string, string>;
+  geocodedPlaces?: Record<string, SerializedGeoLocation>;
+  hiddenPlaces?: Record<string, boolean>;
 }
 
 function serializeDaytime(daytime: DaytimeType): SerializedDaytime {
@@ -309,7 +335,7 @@ function deserializeOption<T, S>(data: SerializedOption<S>, deserialize: (v: S) 
 
 export function serializeSchedule(schedule: Schedule): string {
   const data: SerializedSchedule = {
-    version: 1,
+    version: 2,
     rows: schedule.rows.map(row => ({
       date: formatDate(row.date),
       daytime: serializeOption(row.daytime, serializeDaytime),
@@ -317,7 +343,10 @@ export function serializeSchedule(schedule: Schedule): string {
       otherEvent: serializeOption(row.otherEvent, serializeDaytime),
       otherLocation: serializeOption(row.otherLocation, v => v),
       attend: row.attend
-    }))
+    })),
+    placeDisambiguations: schedule.placeDisambiguations,
+    geocodedPlaces: schedule.geocodedPlaces,
+    hiddenPlaces: schedule.hiddenPlaces
   };
   return JSON.stringify(data, null, 2);
 }
@@ -325,7 +354,7 @@ export function serializeSchedule(schedule: Schedule): string {
 export function deserializeSchedule(json: string): Schedule | null {
   try {
     const data = JSON.parse(json) as SerializedSchedule;
-    if (data.version !== 1) return null;
+    if (data.version !== 1 && data.version !== 2) return null;
 
     const rows: ScheduleRow[] = data.rows.map(row => {
       const date = parseDate(row.date);
@@ -341,7 +370,23 @@ export function deserializeSchedule(json: string): Schedule | null {
       };
     });
 
-    return { rows };
+    // Convert serialized geocoded places, adding empty query for old data
+    const geocodedPlaces: Record<string, GeoLocation> = {};
+    for (const [place, loc] of Object.entries(data.geocodedPlaces ?? {})) {
+      geocodedPlaces[place] = {
+        lat: loc.lat,
+        lng: loc.lng,
+        displayName: loc.displayName,
+        query: loc.query ?? ''  // Empty string will force re-geocode if disambiguation changes
+      };
+    }
+
+    return {
+      rows,
+      placeDisambiguations: data.placeDisambiguations ?? {},
+      geocodedPlaces,
+      hiddenPlaces: data.hiddenPlaces ?? {}
+    };
   } catch {
     return null;
   }
