@@ -18,6 +18,8 @@ import {
   deserializeSchedule,
   autoPopulateDates,
   recalculateDates,
+  printToHtml,
+  printToMarkdown,
   some,
   none,
   isSome,
@@ -488,5 +490,101 @@ describe('Serialization', () => {
     expect(restored).not.toBeNull();
     // Should have empty query, which will trigger re-geocode if disambiguation changes
     expect(restored!.geocodedPlaces['Boston'].query).toBe('');
+  });
+});
+
+describe('Print options', () => {
+  it('printToHtml includes all rows by default', () => {
+    let schedule = createEmptySchedule();
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 15), {
+      daytime: some({ kind: 'organization', name: 'MIT' }),
+      night: some('Boston')
+    }));
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 16), {
+      daytime: some({ kind: 'travel', from: 'Boston', to: 'NYC' }),
+      night: some('NYC')
+    }));
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 17), {
+      daytime: some({ kind: 'personal' }),
+      night: some('NYC')
+    }));
+
+    const html = printToHtml(schedule);
+    expect(html).toContain('MIT');
+    expect(html).toContain('Boston → NYC');
+    expect(html).toContain('personal');
+  });
+
+  it('printToHtml filters to events only when option set', () => {
+    let schedule = createEmptySchedule();
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 15), {
+      daytime: some({ kind: 'organization', name: 'MIT' }),
+      night: some('Boston')
+    }));
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 16), {
+      daytime: some({ kind: 'travel', from: 'Boston', to: 'NYC' }),
+      night: some('NYC')
+    }));
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 17), {
+      daytime: some({ kind: 'personal' }),
+      night: some('NYC')
+    }));
+
+    const html = printToHtml(schedule, { eventsOnly: true, showPinned: false });
+    expect(html).toContain('MIT');
+    expect(html).not.toContain('Boston → NYC');
+    expect(html).not.toContain('personal');
+  });
+
+  it('printToHtml includes pinned columns when option set', () => {
+    let schedule = createEmptySchedule();
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 15), {
+      daytime: some({ kind: 'organization', name: 'MIT' }),
+      night: some('Boston'),
+      otherEvent: some({ kind: 'organization', name: 'Conference' }),
+      otherLocation: some('Cambridge'),
+      attend: true
+    }));
+
+    const htmlWithoutPinned = printToHtml(schedule, { eventsOnly: false, showPinned: false });
+    expect(htmlWithoutPinned).not.toContain('Conference');
+    expect(htmlWithoutPinned).not.toContain('Cambridge');
+
+    const htmlWithPinned = printToHtml(schedule, { eventsOnly: false, showPinned: true });
+    expect(htmlWithPinned).toContain('Conference');
+    expect(htmlWithPinned).toContain('Cambridge');
+    expect(htmlWithPinned).toContain('✓');
+  });
+
+  it('printToMarkdown filters to events only when option set', () => {
+    let schedule = createEmptySchedule();
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 15), {
+      daytime: some({ kind: 'organization', name: 'MIT' }),
+      night: some('Boston')
+    }));
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 16), {
+      daytime: some({ kind: 'travel', from: 'Boston', to: 'NYC' }),
+      night: some('NYC')
+    }));
+
+    const md = printToMarkdown(schedule, { eventsOnly: true, showPinned: false });
+    expect(md).toContain('MIT');
+    expect(md).not.toContain('Boston → NYC');
+  });
+
+  it('printToMarkdown includes pinned columns when option set', () => {
+    let schedule = createEmptySchedule();
+    schedule = addRowToSchedule(schedule, createRow(new Date(2024, 0, 15), {
+      daytime: some({ kind: 'organization', name: 'MIT' }),
+      night: some('Boston'),
+      otherEvent: some({ kind: 'organization', name: 'Conference' }),
+      otherLocation: some('Cambridge'),
+      attend: true
+    }));
+
+    const mdWithPinned = printToMarkdown(schedule, { eventsOnly: false, showPinned: true });
+    expect(mdWithPinned).toContain('Pinned Event');
+    expect(mdWithPinned).toContain('Conference');
+    expect(mdWithPinned).toContain('Cambridge');
   });
 });

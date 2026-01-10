@@ -392,10 +392,35 @@ export function deserializeSchedule(json: string): Schedule | null {
   }
 }
 
+// Print/Share options
+export interface PrintOptions {
+  eventsOnly: boolean;    // If true, exclude travel and personal days
+  showPinned: boolean;    // If true, include pinned event columns
+}
+
+export const defaultPrintOptions: PrintOptions = {
+  eventsOnly: false,
+  showPinned: false
+};
+
+// Filter rows based on print options
+function filterRowsForPrint(rows: ScheduleRow[], options: PrintOptions): ScheduleRow[] {
+  if (!options.eventsOnly) {
+    return rows;
+  }
+  return rows.filter(row => {
+    const daytime = getDaytimeValue(row.daytime);
+    // Keep organization rows, exclude travel/personal/empty
+    return daytime.kind === 'organization';
+  });
+}
+
 // Print to HTML (for email)
 
-export function printToHtml(schedule: Schedule): string {
-  if (schedule.rows.length === 0) {
+export function printToHtml(schedule: Schedule, options: PrintOptions = defaultPrintOptions): string {
+  const rows = filterRowsForPrint(schedule.rows, options);
+
+  if (rows.length === 0) {
     return '<p><em>No schedule data</em></p>';
   }
 
@@ -405,9 +430,14 @@ export function printToHtml(schedule: Schedule): string {
   html += '<th style="border: 1px solid #ccc; padding: 6px;">Day</th>';
   html += '<th style="border: 1px solid #ccc; padding: 6px;">Daytime</th>';
   html += '<th style="border: 1px solid #ccc; padding: 6px;">Night</th>';
+  if (options.showPinned) {
+    html += '<th style="border: 1px solid #ccc; padding: 6px;">Pinned Event</th>';
+    html += '<th style="border: 1px solid #ccc; padding: 6px;">Location</th>';
+    html += '<th style="border: 1px solid #ccc; padding: 6px;">Attending</th>';
+  }
   html += '</tr></thead><tbody>';
 
-  for (const row of schedule.rows) {
+  for (const row of rows) {
     const day = getDayOfWeek(row.date);
     const isWknd = isWeekend(row.date);
     const bgColor = isWknd ? '#f9f9f9' : '#fff';
@@ -420,6 +450,14 @@ export function printToHtml(schedule: Schedule): string {
     html += `<td style="border: 1px solid #ccc; padding: 6px;">${day}</td>`;
     html += `<td style="border: 1px solid #ccc; padding: 6px;">${formatDaytime(daytimeValue)}</td>`;
     html += `<td style="border: 1px solid #ccc; padding: 6px;">${nightValue}</td>`;
+    if (options.showPinned) {
+      const pinnedEvent = isSome(row.otherEvent) ? formatDaytime(row.otherEvent.value) : '';
+      const pinnedLocation = getOrDefault(row.otherLocation, '');
+      const attending = row.attend ? '✓' : '';
+      html += `<td style="border: 1px solid #ccc; padding: 6px;">${pinnedEvent}</td>`;
+      html += `<td style="border: 1px solid #ccc; padding: 6px;">${pinnedLocation}</td>`;
+      html += `<td style="border: 1px solid #ccc; padding: 6px; text-align: center;">${attending}</td>`;
+    }
     html += '</tr>';
   }
 
@@ -429,20 +467,38 @@ export function printToHtml(schedule: Schedule): string {
 
 // Print to Markdown (GitHub flavored, for Obsidian)
 
-export function printToMarkdown(schedule: Schedule): string {
-  if (schedule.rows.length === 0) {
+export function printToMarkdown(schedule: Schedule, options: PrintOptions = defaultPrintOptions): string {
+  const rows = filterRowsForPrint(schedule.rows, options);
+
+  if (rows.length === 0) {
     return '*No schedule data*';
   }
 
-  let md = '| Date | Day | Daytime | Night |\n';
-  md += '|------|-----|---------|-------|\n';
+  let md = '| Date | Day | Daytime | Night |';
+  if (options.showPinned) {
+    md += ' Pinned Event | Location | Attending |';
+  }
+  md += '\n';
 
-  for (const row of schedule.rows) {
+  md += '|------|-----|---------|-------|';
+  if (options.showPinned) {
+    md += '--------------|----------|-----------|';
+  }
+  md += '\n';
+
+  for (const row of rows) {
     const day = getDayOfWeek(row.date);
     const daytimeValue = getDaytimeValue(row.daytime);
     const nightValue = getOrDefault(row.night, '');
 
-    md += `| ${formatDate(row.date)} | ${day} | ${formatDaytime(daytimeValue)} | ${nightValue} |\n`;
+    md += `| ${formatDate(row.date)} | ${day} | ${formatDaytime(daytimeValue)} | ${nightValue} |`;
+    if (options.showPinned) {
+      const pinnedEvent = isSome(row.otherEvent) ? formatDaytime(row.otherEvent.value) : '';
+      const pinnedLocation = getOrDefault(row.otherLocation, '');
+      const attending = row.attend ? '✓' : '';
+      md += ` ${pinnedEvent} | ${pinnedLocation} | ${attending} |`;
+    }
+    md += '\n';
   }
 
   return md;

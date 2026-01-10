@@ -5,6 +5,7 @@ import {
   ScheduleRow,
   DaytimeType,
   Option,
+  PrintOptions,
   createRow,
   removeRowFromSchedule,
   updateRowInSchedule,
@@ -21,6 +22,7 @@ import {
   deserializeSchedule,
   printToHtml,
   printToMarkdown,
+  defaultPrintOptions,
   isPersonal,
   isTravel,
   getDaytimeValue,
@@ -648,8 +650,8 @@ export async function pasteFromClipboard(): Promise<Schedule | null> {
 }
 
 // Copy HTML to clipboard (for email)
-export async function copyHtmlToClipboard(schedule: Schedule): Promise<boolean> {
-  const html = printToHtml(schedule);
+export async function copyHtmlToClipboard(schedule: Schedule, options: PrintOptions = defaultPrintOptions): Promise<boolean> {
+  const html = printToHtml(schedule, options);
   try {
     const blob = new Blob([html], { type: 'text/html' });
     const item = new ClipboardItem({ 'text/html': blob });
@@ -667,8 +669,8 @@ export async function copyHtmlToClipboard(schedule: Schedule): Promise<boolean> 
 }
 
 // Copy Markdown to clipboard (for Obsidian)
-export async function copyMarkdownToClipboard(schedule: Schedule): Promise<boolean> {
-  const md = printToMarkdown(schedule);
+export async function copyMarkdownToClipboard(schedule: Schedule, options: PrintOptions = defaultPrintOptions): Promise<boolean> {
+  const md = printToMarkdown(schedule, options);
   try {
     await navigator.clipboard.writeText(md);
     return true;

@@ -6,11 +6,10 @@ import {
   createUI,
   updateState,
   copyToClipboard,
-  pasteFromClipboard,
-  copyHtmlToClipboard,
-  copyMarkdownToClipboard
+  pasteFromClipboard
 } from './ui.js';
 import { showMapModal } from './mapUI.js';
+import { showShareModal } from './shareUI.js';
 import { createDirtyTracker } from './dirtyTracker.js';
 
 function main(): void {
@@ -19,10 +18,7 @@ function main(): void {
   const violationList = document.getElementById('violation-list') as HTMLUListElement;
   const copyBtn = document.getElementById('copy-data') as HTMLButtonElement;
   const pasteBtn = document.getElementById('paste-data') as HTMLButtonElement;
-  const printBtn = document.getElementById('print-btn') as HTMLButtonElement;
-  const printDropdown = document.getElementById('print-dropdown')?.parentElement as HTMLElement;
-  const printHtmlBtn = document.getElementById('print-html') as HTMLAnchorElement;
-  const printMarkdownBtn = document.getElementById('print-markdown') as HTMLAnchorElement;
+  const shareBtn = document.getElementById('share-btn') as HTMLButtonElement;
   const mapBtn = document.getElementById('map-btn') as HTMLButtonElement;
 
   if (!tableBody || !constraintPanel || !violationList) {
@@ -88,39 +84,9 @@ function main(): void {
     }
   });
 
-  // Print dropdown toggle
-  printBtn?.addEventListener('click', (e) => {
-    e.stopPropagation();
-    printDropdown?.classList.toggle('open');
-  });
-
-  // Close dropdown when clicking elsewhere
-  document.addEventListener('click', () => {
-    printDropdown?.classList.remove('open');
-  });
-
-  printHtmlBtn?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    printDropdown?.classList.remove('open');
-    const success = await copyHtmlToClipboard(state.schedule);
-    if (success) {
-      printBtn.textContent = 'Copied HTML!';
-      setTimeout(() => { printBtn.textContent = 'Print ▾'; }, 1500);
-    } else {
-      alert('Failed to copy HTML to clipboard');
-    }
-  });
-
-  printMarkdownBtn?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    printDropdown?.classList.remove('open');
-    const success = await copyMarkdownToClipboard(state.schedule);
-    if (success) {
-      printBtn.textContent = 'Copied MD!';
-      setTimeout(() => { printBtn.textContent = 'Print ▾'; }, 1500);
-    } else {
-      alert('Failed to copy Markdown to clipboard');
-    }
+  // Share button handler
+  shareBtn?.addEventListener('click', () => {
+    showShareModal(state.schedule);
   });
 
   // Map button handler
