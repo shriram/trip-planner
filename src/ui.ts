@@ -230,10 +230,6 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
   deleteBtn.title = 'Delete row';
   deleteBtn.className = 'delete';
   deleteBtn.addEventListener('click', () => {
-    if (isPersonal(row.daytime)) {
-      if (!confirm('Delete this personal day?')) return;
-    }
-
     state.schedule = removeRowFromSchedule(state.schedule, row.id);
     if (state.schedule.rows.length > 0) {
       state.schedule = recalculateDates(state.schedule);
