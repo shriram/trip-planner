@@ -157,14 +157,14 @@ export function showMapModal(
       }
     });
 
-    // Collect hidden state
+    // Collect hidden state (checkbox checked = show, unchecked = hidden)
     const checkboxes = disambiguationList.querySelectorAll('input[type="checkbox"]');
     checkboxes.forEach((checkbox) => {
       const place = (checkbox as HTMLInputElement).dataset.place!;
       if ((checkbox as HTMLInputElement).checked) {
-        hiddenPlaces[place] = true;
+        delete hiddenPlaces[place]; // Checked = show, so remove from hidden
       } else {
-        delete hiddenPlaces[place];
+        hiddenPlaces[place] = true; // Unchecked = hidden
       }
     });
 
@@ -228,6 +228,21 @@ function renderDisambiguationList(
   const table = document.createElement('table');
   table.className = 'disambiguation-table';
 
+  // Header row
+  const headerRow = document.createElement('tr');
+  headerRow.className = 'disambiguation-header';
+  const showHeader = document.createElement('th');
+  showHeader.textContent = 'Show';
+  showHeader.title = 'Include location on map';
+  const placeHeader = document.createElement('th');
+  placeHeader.textContent = 'Place';
+  const hintHeader = document.createElement('th');
+  hintHeader.textContent = 'Details';
+  headerRow.appendChild(showHeader);
+  headerRow.appendChild(placeHeader);
+  headerRow.appendChild(hintHeader);
+  table.appendChild(headerRow);
+
   // Store all text inputs for navigation
   const textInputs: HTMLInputElement[] = [];
 
@@ -235,15 +250,15 @@ function renderDisambiguationList(
     const place = places[i];
     const row = document.createElement('tr');
 
-    // Hide checkbox cell
-    const hideCell = document.createElement('td');
-    hideCell.className = 'hide-cell';
-    const hideCheckbox = document.createElement('input');
-    hideCheckbox.type = 'checkbox';
-    hideCheckbox.checked = !!hiddenPlaces[place];
-    hideCheckbox.dataset.place = place;
-    hideCheckbox.title = 'Hide from map';
-    hideCell.appendChild(hideCheckbox);
+    // Show checkbox cell (checked = included, unchecked = hidden)
+    const showCell = document.createElement('td');
+    showCell.className = 'show-cell';
+    const showCheckbox = document.createElement('input');
+    showCheckbox.type = 'checkbox';
+    showCheckbox.checked = !hiddenPlaces[place]; // Inverted: checked means show
+    showCheckbox.dataset.place = place;
+    showCheckbox.title = 'Include on map';
+    showCell.appendChild(showCheckbox);
 
     // Place name cell
     const placeCell = document.createElement('td');
@@ -262,7 +277,7 @@ function renderDisambiguationList(
 
     textInputs.push(input);
 
-    row.appendChild(hideCell);
+    row.appendChild(showCell);
     row.appendChild(placeCell);
     row.appendChild(inputCell);
     table.appendChild(row);
