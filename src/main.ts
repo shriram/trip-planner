@@ -11,6 +11,7 @@ import {
   copyMarkdownToClipboard
 } from './ui.js';
 import { showMapModal } from './mapUI.js';
+import { createDirtyTracker } from './dirtyTracker.js';
 
 function main(): void {
   const tableBody = document.getElementById('schedule-body') as HTMLTableSectionElement;
@@ -29,12 +30,25 @@ function main(): void {
     return;
   }
 
+  // Track unsaved changes
+  const dirtyTracker = createDirtyTracker();
+
   const state = createUI(tableBody, constraintPanel, violationList);
 
   // Set up the update handler
   state.onUpdate = (schedule: Schedule) => {
+    dirtyTracker.markDirty();
     updateState(state, schedule, tableBody, constraintPanel, violationList);
   };
+
+  // Warn before closing tab if there are unsaved changes
+  window.addEventListener('beforeunload', (e) => {
+    if (dirtyTracker.shouldWarnOnClose()) {
+      e.preventDefault();
+      // Modern browsers ignore custom messages, but returnValue must be set
+      e.returnValue = '';
+    }
+  });
 
   // Initialize with a sample row
   const today = new Date();
@@ -48,6 +62,7 @@ function main(): void {
   copyBtn?.addEventListener('click', async () => {
     const success = await copyToClipboard(state.schedule);
     if (success) {
+      dirtyTracker.markClean();
       copyBtn.textContent = 'Copied!';
       setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
     } else {
@@ -56,9 +71,16 @@ function main(): void {
   });
 
   pasteBtn?.addEventListener('click', async () => {
+    // Warn if there are unsaved changes
+    if (!dirtyTracker.confirmPasteIfDirty(confirm)) {
+      return;
+    }
     const schedule = await pasteFromClipboard();
     if (schedule) {
+      dirtyTracker.markClean();
       state.onUpdate(schedule);
+      // onUpdate marks dirty, but paste is a "clean" operation
+      dirtyTracker.markClean();
       pasteBtn.textContent = 'Pasted!';
       setTimeout(() => { pasteBtn.textContent = 'Paste'; }, 1500);
     } else {
