@@ -18,7 +18,7 @@ The tracker highlights weekends so you don't inadvertently put work meetings the
   - Mismatch between stated location and location of a pinned event (if specified)
 - **Map visualization**: Generate an interactive map showing your travel route with geocoded locations
 - **Data export/import**: Copy/paste your schedule as JSON (there is no other form of “saving”; save this file wherever you want)
-- **Sharing**: “Print” non-pinned columns to both HTML and Markdown to share with others in email, files, etc.
+- **Sharing**: Copy your schedule as HTML or Markdown to share with others in email, files, etc.
 
 ## How to Use
 
@@ -31,8 +31,8 @@ The tracker highlights weekends so you don't inadvertently put work meetings the
    - **Attending**: Check if you plan to attend a pinned event
 4. Watch for constraint violations (highlighted in red) and fix as needed
 5. Use **Map** to visualize your route
-6. Use **Copy** to save your data, **Paste** to restore it later
-7. Use **Print** to generate HTML and Markdown
+6. Use **Export** to save your data, **Import** to restore it later
+7. Use **Copy as...** to generate HTML or Markdown
 
 ### Keyboard Navigation
 

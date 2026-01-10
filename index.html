@@ -14,11 +14,12 @@
   <div id="app">
     <header>
       <h1>Trip Planner</h1>
+      <span id="status-indicator" class="status-indicator hidden"></span>
       <div class="toolbar">
-        <button id="copy-data">Copy</button>
-        <button id="paste-data">Paste</button>
-        <button id="share-btn">Share</button>
-        <button id="map-btn">Map</button>
+        <button id="export-btn" title="Copy schedule as JSON to clipboard (save this somewhere!)">Export</button>
+        <button id="import-btn" title="Load schedule from JSON in clipboard">Import</button>
+        <button id="format-btn" title="Copy as HTML or Markdown for sharing">Copy as...</button>
+        <button id="map-btn" title="Generate an interactive map of your trip">Map</button>
       </div>
     </header>
     <main>

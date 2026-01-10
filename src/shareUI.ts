@@ -16,7 +16,7 @@ export function showShareModal(schedule: Schedule): void {
   const header = document.createElement('div');
   header.className = 'share-modal-header';
   header.innerHTML = `
-    <h2>Share Schedule</h2>
+    <h2>Copy Schedule As</h2>
     <button class="share-modal-close">&times;</button>
   `;
 

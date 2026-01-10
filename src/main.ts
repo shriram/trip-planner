@@ -16,10 +16,11 @@ function main(): void {
   const tableBody = document.getElementById('schedule-body') as HTMLTableSectionElement;
   const constraintPanel = document.getElementById('constraint-panel') as HTMLElement;
   const violationList = document.getElementById('violation-list') as HTMLUListElement;
-  const copyBtn = document.getElementById('copy-data') as HTMLButtonElement;
-  const pasteBtn = document.getElementById('paste-data') as HTMLButtonElement;
-  const shareBtn = document.getElementById('share-btn') as HTMLButtonElement;
+  const exportBtn = document.getElementById('export-btn') as HTMLButtonElement;
+  const importBtn = document.getElementById('import-btn') as HTMLButtonElement;
+  const formatBtn = document.getElementById('format-btn') as HTMLButtonElement;
   const mapBtn = document.getElementById('map-btn') as HTMLButtonElement;
+  const statusIndicator = document.getElementById('status-indicator') as HTMLSpanElement;
 
   if (!tableBody || !constraintPanel || !violationList) {
     console.error('Required DOM elements not found');
@@ -29,11 +30,45 @@ function main(): void {
   // Track unsaved changes
   const dirtyTracker = createDirtyTracker();
 
+  // Update the dirty indicator UI and export button styling
+  function updateDirtyIndicator(): void {
+    const isDirty = dirtyTracker.shouldWarnOnClose();
+
+    if (statusIndicator) {
+      if (isDirty) {
+        statusIndicator.textContent = 'Unsaved changes';
+        statusIndicator.className = 'status-indicator';
+      } else {
+        statusIndicator.className = 'status-indicator hidden';
+      }
+    }
+
+    if (exportBtn) {
+      if (isDirty) {
+        exportBtn.classList.add('export-dirty');
+      } else {
+        exportBtn.classList.remove('export-dirty');
+      }
+    }
+  }
+
+  // Show save reminder temporarily
+  function showSaveReminder(): void {
+    if (statusIndicator) {
+      statusIndicator.textContent = 'Copied to clipboard — save this somewhere!';
+      statusIndicator.className = 'status-indicator save-reminder';
+    }
+    setTimeout(() => {
+      updateDirtyIndicator();
+    }, 3000);
+  }
+
   const state = createUI(tableBody, constraintPanel, violationList);
 
   // Set up the update handler
   state.onUpdate = (schedule: Schedule) => {
     dirtyTracker.markDirty();
+    updateDirtyIndicator();
     updateState(state, schedule, tableBody, constraintPanel, violationList);
   };
 
@@ -54,19 +89,19 @@ function main(): void {
   state.violations = checkConstraints(state.schedule);
   updateState(state, state.schedule, tableBody, constraintPanel, violationList);
 
-  // Button handlers
-  copyBtn?.addEventListener('click', async () => {
+  // Export button handler
+  exportBtn?.addEventListener('click', async () => {
     const success = await copyToClipboard(state.schedule);
     if (success) {
       dirtyTracker.markClean();
-      copyBtn.textContent = 'Copied!';
-      setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
+      showSaveReminder();
     } else {
       alert('Failed to copy to clipboard');
     }
   });
 
-  pasteBtn?.addEventListener('click', async () => {
+  // Import button handler
+  importBtn?.addEventListener('click', async () => {
     // Warn if there are unsaved changes
     if (!dirtyTracker.confirmPasteIfDirty(confirm)) {
       return;
@@ -75,17 +110,16 @@ function main(): void {
     if (schedule) {
       dirtyTracker.markClean();
       state.onUpdate(schedule);
-      // onUpdate marks dirty, but paste is a "clean" operation
+      // onUpdate marks dirty, but import is a "clean" operation
       dirtyTracker.markClean();
-      pasteBtn.textContent = 'Pasted!';
-      setTimeout(() => { pasteBtn.textContent = 'Paste'; }, 1500);
+      updateDirtyIndicator();
     } else {
-      alert('Failed to paste: invalid or no data in clipboard');
+      alert('Failed to import: invalid or no JSON data in clipboard');
     }
   });
 
-  // Share button handler
-  shareBtn?.addEventListener('click', () => {
+  // Format button handler
+  formatBtn?.addEventListener('click', () => {
     showShareModal(state.schedule);
   });
 

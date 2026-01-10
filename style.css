@@ -32,6 +32,7 @@ h1 {
 .toolbar {
   display: flex;
   gap: 8px;
+  align-items: center;
 }
 
 .toolbar button {
@@ -45,6 +46,35 @@ h1 {
 
 .toolbar button:hover {
   background: #f0f0f0;
+}
+
+.status-indicator {
+  font-size: 11px;
+  color: #856404;
+  background: #fff3cd;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.status-indicator.hidden {
+  display: none;
+}
+
+.status-indicator.save-reminder {
+  color: #155724;
+  background: #d4edda;
+}
+
+.toolbar button.export-dirty {
+  background: #fff3cd;
+  border-color: #ffc107;
+  color: #856404;
+}
+
+.toolbar button.export-dirty:hover {
+  background: #ffe69c;
 }
 
 table {
