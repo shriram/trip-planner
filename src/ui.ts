@@ -211,22 +211,23 @@ function getNextNight(state: UIState, rowId: string): string | null {
 // Handle daytime change with smart behaviors
 function handleDaytimeChange(
   state: UIState,
-  row: ScheduleRow,
+  rowId: string,
   newDaytimeValue: DaytimeType
 ): void {
-  const index = getRowIndex(state.schedule, row.id);
+  const index = getRowIndex(state.schedule, rowId);
+  const currentRow = state.schedule.rows[index];
   const newDaytime: Option<DaytimeType> = some(newDaytimeValue);
   let updates: Partial<ScheduleRow> = { daytime: newDaytime };
 
   // Rule 1: Travel "x → y" auto-populates Night with y if not set
   if (newDaytimeValue.kind === 'travel') {
     const destination = newDaytimeValue.to;
-    if (isNone(row.night)) {
+    if (isNone(currentRow.night)) {
       // Night not set - auto-populate
       updates.night = some(destination);
-    } else if (row.night.value !== destination) {
+    } else if (currentRow.night.value !== destination) {
       // Night already set to something different - ask user
-      if (confirm(`Night is "${row.night.value}". Change to "${destination}"?`)) {
+      if (confirm(`Night is "${currentRow.night.value}". Change to "${destination}"?`)) {
         updates.night = some(destination);
       }
       // If user says no, we still update daytime but leave night as-is
@@ -236,19 +237,19 @@ function handleDaytimeChange(
 
   // Rule 2: Non-travel daytime inherits previous Night if not set
   if (newDaytimeValue.kind !== 'travel') {
-    if (isNone(row.night)) {
-      const prevNight = getPrevNight(state, row.id);
+    if (isNone(currentRow.night)) {
+      const prevNight = getPrevNight(state, rowId);
       if (prevNight) {
         updates.night = some(prevNight);
       }
     }
   }
 
-  state.schedule = updateRowInSchedule(state.schedule, row.id, updates);
+  state.schedule = updateRowInSchedule(state.schedule, rowId, updates);
 
   // Rule 3: Check if this creates a "personal between different locations" situation
   // and offer to change the night location to match the previous night
-  checkPersonalBetweenLocations(state, row.id);
+  checkPersonalBetweenLocations(state, rowId);
 
   state.onUpdate(state.schedule);
 }
@@ -306,8 +307,9 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
   insertAboveBtn.title = 'Insert row above';
   insertAboveBtn.addEventListener('click', () => {
     const index = getRowIndex(state.schedule, row.id);
+    const currentRow = state.schedule.rows[index];
     const prevRow = state.schedule.rows[index - 1];
-    const newDate = prevRow ? addDays(prevRow.date, 1) : addDays(row.date, -1);
+    const newDate = prevRow ? addDays(prevRow.date, 1) : addDays(currentRow.date, -1);
     const newRow = createRow(newDate);
     state.schedule = insertRowAtIndex(state.schedule, index, newRow);
     recalculateDatesInState(state);
@@ -320,7 +322,8 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
   insertBelowBtn.title = 'Insert row below';
   insertBelowBtn.addEventListener('click', () => {
     const index = getRowIndex(state.schedule, row.id);
-    const newDate = addDays(row.date, 1);
+    const currentRow = state.schedule.rows[index];
+    const newDate = addDays(currentRow.date, 1);
     const newRow = createRow(newDate);
     state.schedule = insertRowAtIndex(state.schedule, index + 1, newRow);
     recalculateDatesInState(state);
@@ -386,7 +389,7 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
   daytimeInput.placeholder = 'org, city→city, or personal';
   daytimeInput.addEventListener('change', () => {
     const newDaytime = parseDaytime(daytimeInput.value);
-    handleDaytimeChange(state, row, newDaytime);
+    handleDaytimeChange(state, row.id, newDaytime);
   });
   daytimeInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
