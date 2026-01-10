@@ -331,12 +331,12 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
   nightCell.appendChild(nightInput);
   tr.appendChild(nightCell);
 
-  // Other Event column
+  // Pinned Event column
   const otherEventCell = document.createElement('td');
   const otherEventInput = document.createElement('input');
   otherEventInput.type = 'text';
   otherEventInput.value = formatDaytime(getDaytimeValue(row.otherEvent));
-  otherEventInput.placeholder = 'Event';
+  otherEventInput.placeholder = 'Pinned event';
   otherEventInput.addEventListener('change', () => {
     const newOtherEvent = parseDaytime(otherEventInput.value);
     state.schedule = updateRowInSchedule(state.schedule, row.id, {
@@ -359,7 +359,7 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
   otherEventCell.appendChild(otherEventInput);
   tr.appendChild(otherEventCell);
 
-  // Other Location column
+  // Location column (for pinned event)
   const otherLocationCell = document.createElement('td');
   const otherLocationInput = document.createElement('input');
   otherLocationInput.type = 'text';
