@@ -98,6 +98,23 @@ td input[type="checkbox"] {
   cursor: pointer;
 }
 
+/* Hidden text for pinned event/location - only shows on focus */
+td input.hidden-text {
+  color: transparent;
+}
+
+td input.hidden-text::placeholder {
+  color: transparent;
+}
+
+td input.hidden-text:focus {
+  color: inherit;
+}
+
+td input.hidden-text:focus::placeholder {
+  color: #999;
+}
+
 .row-actions {
   display: flex;
   gap: 4px;

@@ -396,6 +396,19 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
         const nightInput = newTr?.querySelector('td:nth-child(5) input') as HTMLInputElement | null;
         if (nightInput) nightInput.focus();
       }, 0);
+    } else if (e.key === 'Tab' && e.shiftKey) {
+      e.preventDefault();
+      const rowIndex = getRowIndex(state.schedule, row.id);
+      const prevRow = state.schedule.rows[rowIndex - 1];
+      daytimeInput.blur();
+      // Move to previous row's night input (skip pinned columns)
+      if (prevRow) {
+        setTimeout(() => {
+          const prevTr = document.querySelector(`tr[data-row-id="${prevRow.id}"]`);
+          const prevNightInput = prevTr?.querySelector('td:nth-child(5) input') as HTMLInputElement | null;
+          if (prevNightInput) prevNightInput.focus();
+        }, 0);
+      }
     }
   });
   addArrowKeyNavigation(state, daytimeInput, '.daytime-cell input');
@@ -418,33 +431,51 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
     state.onUpdate(state.schedule);
   });
   nightInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey)) {
       e.preventDefault();
-      const rowId = row.id;
+      const rowIndex = getRowIndex(state.schedule, row.id);
+      const nextRow = state.schedule.rows[rowIndex + 1];
       nightInput.blur();
-      setTimeout(() => {
-        const newTr = document.querySelector(`tr[data-row-id="${rowId}"]`);
-        const otherEventInput = newTr?.querySelector('td:nth-child(6) input') as HTMLInputElement | null;
-        if (otherEventInput) otherEventInput.focus();
-      }, 0);
+      // Move to next row's daytime input (skip pinned columns)
+      if (nextRow) {
+        setTimeout(() => {
+          const nextTr = document.querySelector(`tr[data-row-id="${nextRow.id}"]`);
+          const nextDaytimeInput = nextTr?.querySelector('.daytime-cell input') as HTMLInputElement | null;
+          if (nextDaytimeInput) nextDaytimeInput.focus();
+        }, 0);
+      }
     }
   });
   addArrowKeyNavigation(state, nightInput, 'td:nth-child(5) input');
   nightCell.appendChild(nightInput);
   tr.appendChild(nightCell);
 
-  // Pinned Event column
+  // Pinned Event column (hidden text when empty and not focused)
   const otherEventCell = document.createElement('td');
   const otherEventInput = document.createElement('input');
   otherEventInput.type = 'text';
   otherEventInput.value = formatDaytime(getDaytimeValue(row.otherEvent));
   otherEventInput.placeholder = 'Pinned event';
+  // Only hide if empty
+  if (!otherEventInput.value.trim()) {
+    otherEventInput.classList.add('hidden-text');
+  }
+  otherEventInput.tabIndex = -1; // Skip in tab order
   otherEventInput.addEventListener('change', () => {
     const newOtherEvent = parseDaytime(otherEventInput.value);
     state.schedule = updateRowInSchedule(state.schedule, row.id, {
       otherEvent: some(newOtherEvent)
     });
     state.onUpdate(state.schedule);
+  });
+  otherEventInput.addEventListener('focus', () => {
+    otherEventInput.classList.remove('hidden-text');
+  });
+  otherEventInput.addEventListener('blur', () => {
+    // Only hide if empty
+    if (!otherEventInput.value.trim()) {
+      otherEventInput.classList.add('hidden-text');
+    }
   });
   otherEventInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
@@ -462,18 +493,32 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
   otherEventCell.appendChild(otherEventInput);
   tr.appendChild(otherEventCell);
 
-  // Location column (for pinned event)
+  // Location column (for pinned event, hidden text when empty and not focused)
   const otherLocationCell = document.createElement('td');
   const otherLocationInput = document.createElement('input');
   otherLocationInput.type = 'text';
   otherLocationInput.value = getOrDefault(row.otherLocation, '');
   otherLocationInput.placeholder = 'Location';
+  // Only hide if empty
+  if (!otherLocationInput.value.trim()) {
+    otherLocationInput.classList.add('hidden-text');
+  }
+  otherLocationInput.tabIndex = -1; // Skip in tab order
   otherLocationInput.addEventListener('change', () => {
     const value = otherLocationInput.value.trim();
     state.schedule = updateRowInSchedule(state.schedule, row.id, {
       otherLocation: value ? some(value) : none()
     });
     state.onUpdate(state.schedule);
+  });
+  otherLocationInput.addEventListener('focus', () => {
+    otherLocationInput.classList.remove('hidden-text');
+  });
+  otherLocationInput.addEventListener('blur', () => {
+    // Only hide if empty
+    if (!otherLocationInput.value.trim()) {
+      otherLocationInput.classList.add('hidden-text');
+    }
   });
   otherLocationInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
