@@ -4,7 +4,7 @@ A simple, offline-first tool for planning multi-city trips. Built for planning v
 
 The tracker highlights weekends so you don't inadvertently put work meetings there, but it won't prevent you from doing it; sometimes that's the only day that makes sense!
 
-![Beatles 1964 US Tour](beatles-tour.png)
+![Beatles 1964 US Tour](samples/beatles-1964.png)
 
 ## What It Does
 
