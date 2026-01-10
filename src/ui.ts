@@ -392,15 +392,20 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
     handleDaytimeChange(state, row.id, newDaytime);
   });
   daytimeInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey)) {
       e.preventDefault();
       const rowId = row.id;
       daytimeInput.blur(); // Trigger change event
       // Focus night input after render (row may be re-created)
       setTimeout(() => {
         const newTr = document.querySelector(`tr[data-row-id="${rowId}"]`);
-        const nightInput = newTr?.querySelector('td:nth-child(5) input') as HTMLInputElement | null;
-        if (nightInput) nightInput.focus();
+        const nightInputEl = newTr?.querySelector('td:nth-child(5) input') as HTMLInputElement | null;
+        if (nightInputEl) {
+          nightInputEl.focus();
+          if (e.key === 'Enter') {
+            nightInputEl.select();
+          }
+        }
       }, 0);
     } else if (e.key === 'Tab' && e.shiftKey) {
       e.preventDefault();
@@ -442,14 +447,28 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
       const rowIndex = getRowIndex(state.schedule, row.id);
       const nextRow = state.schedule.rows[rowIndex + 1];
       nightInput.blur();
-      // Move to next row's daytime input (skip pinned columns)
+
       if (nextRow) {
+        // Move to next row's daytime input (skip pinned columns)
         setTimeout(() => {
           const nextTr = document.querySelector(`tr[data-row-id="${nextRow.id}"]`);
           const nextDaytimeInput = nextTr?.querySelector('.daytime-cell input') as HTMLInputElement | null;
-          if (nextDaytimeInput) nextDaytimeInput.focus();
+          if (nextDaytimeInput) {
+            nextDaytimeInput.focus();
+            nextDaytimeInput.select();
+          }
         }, 0);
+      } else if (e.key === 'Enter') {
+        // No next row and Enter pressed - add a new row
+        const currentRow = state.schedule.rows[rowIndex];
+        const newDate = addDays(currentRow.date, 1);
+        const newRow = createRow(newDate);
+        state.schedule = insertRowAtIndex(state.schedule, rowIndex + 1, newRow);
+        recalculateDatesInState(state);
+        state.focusRowId = newRow.id;
+        state.onUpdate(state.schedule);
       }
+      // Tab at end of table: do nothing (let focus leave naturally)
     }
   });
   addArrowKeyNavigation(state, nightInput, 'td:nth-child(5) input');
