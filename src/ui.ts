@@ -289,6 +289,19 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
     const newDaytime = parseDaytime(daytimeInput.value);
     handleDaytimeChange(state, row, newDaytime);
   });
+  daytimeInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const rowId = row.id;
+      daytimeInput.blur(); // Trigger change event
+      // Focus night input after render (row may be re-created)
+      setTimeout(() => {
+        const newTr = document.querySelector(`tr[data-row-id="${rowId}"]`);
+        const nightInput = newTr?.querySelector('td:nth-child(5) input') as HTMLInputElement | null;
+        if (nightInput) nightInput.focus();
+      }, 0);
+    }
+  });
   daytimeCell.appendChild(daytimeInput);
   tr.appendChild(daytimeCell);
 
@@ -307,6 +320,18 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
     checkPersonalBetweenLocations(state, row.id);
     state.onUpdate(state.schedule);
   });
+  nightInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const rowId = row.id;
+      nightInput.blur();
+      setTimeout(() => {
+        const newTr = document.querySelector(`tr[data-row-id="${rowId}"]`);
+        const otherEventInput = newTr?.querySelector('td:nth-child(6) input') as HTMLInputElement | null;
+        if (otherEventInput) otherEventInput.focus();
+      }, 0);
+    }
+  });
   nightCell.appendChild(nightInput);
   tr.appendChild(nightCell);
 
@@ -323,6 +348,18 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
     });
     state.onUpdate(state.schedule);
   });
+  otherEventInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const rowId = row.id;
+      otherEventInput.blur();
+      setTimeout(() => {
+        const newTr = document.querySelector(`tr[data-row-id="${rowId}"]`);
+        const otherLocationInput = newTr?.querySelector('td:nth-child(7) input') as HTMLInputElement | null;
+        if (otherLocationInput) otherLocationInput.focus();
+      }, 0);
+    }
+  });
   otherEventCell.appendChild(otherEventInput);
   tr.appendChild(otherEventCell);
 
@@ -338,6 +375,23 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
       otherLocation: value ? some(value) : none()
     });
     state.onUpdate(state.schedule);
+  });
+  otherLocationInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const rowIndex = getRowIndex(state.schedule, row.id);
+      const nextRow = state.schedule.rows[rowIndex + 1];
+      const nextRowId = nextRow?.id;
+      otherLocationInput.blur();
+      // Move to next row's daytime input
+      if (nextRowId) {
+        setTimeout(() => {
+          const nextTr = document.querySelector(`tr[data-row-id="${nextRowId}"]`);
+          const nextDaytimeInput = nextTr?.querySelector('.daytime-cell input') as HTMLInputElement | null;
+          if (nextDaytimeInput) nextDaytimeInput.focus();
+        }, 0);
+      }
+    }
   });
   otherLocationCell.appendChild(otherLocationInput);
   tr.appendChild(otherLocationCell);
