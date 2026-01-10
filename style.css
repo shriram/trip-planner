@@ -443,6 +443,12 @@ tr.violation td {
   text-align: center;
 }
 
+/* Arrow markers on map */
+.arrow-marker {
+  background: transparent;
+  border: none;
+}
+
 /* Share Modal */
 .share-modal-overlay {
   position: fixed;

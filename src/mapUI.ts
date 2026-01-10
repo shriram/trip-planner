@@ -6,6 +6,7 @@ import {
   extractTravelSegments,
   geocodeAllPlaces,
   getSegmentColor,
+  calculateBearing,
   calculateBounds,
   updateScheduleWithGeodata,
   TravelSegment
@@ -15,10 +16,15 @@ import {
 declare const L: {
   map(element: HTMLElement): LeafletMap;
   tileLayer(url: string, options: Record<string, unknown>): LeafletTileLayer;
-  marker(latlng: [number, number]): LeafletMarker;
+  marker(latlng: [number, number], options?: { icon?: LeafletIcon }): LeafletMarker;
   polyline(latlngs: [number, number][], options: Record<string, unknown>): LeafletPolyline;
   latLngBounds(corner1: [number, number], corner2: [number, number]): LeafletBounds;
+  divIcon(options: { html: string; className: string; iconSize: [number, number]; iconAnchor: [number, number] }): LeafletIcon;
 };
+
+interface LeafletIcon {
+  // Marker icon
+}
 
 interface LeafletMap {
   setView(center: [number, number], zoom: number): LeafletMap;
@@ -368,6 +374,8 @@ function renderMap(
 
     if (fromLoc && toLoc) {
       const color = getSegmentColor(idx, totalSegments);
+
+      // Draw the main line
       L.polyline(
         [[fromLoc.lat, fromLoc.lng], [toLoc.lat, toLoc.lng]],
         {
@@ -376,6 +384,22 @@ function renderMap(
           opacity: 0.8
         }
       ).addTo(map);
+
+      // Draw filled arrowhead at destination using SVG marker
+      const bearing = calculateBearing(fromLoc.lat, fromLoc.lng, toLoc.lat, toLoc.lng);
+      const arrowSize = 12;
+      const arrowSvg = `<svg width="${arrowSize}" height="${arrowSize}" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="6,0 12,12 6,9 0,12" fill="${color}" transform="rotate(${bearing}, 6, 6)"/>
+      </svg>`;
+
+      const arrowIcon = L.divIcon({
+        html: arrowSvg,
+        className: 'arrow-marker',
+        iconSize: [arrowSize, arrowSize],
+        iconAnchor: [arrowSize / 2, arrowSize / 2]
+      });
+
+      L.marker([toLoc.lat, toLoc.lng], { icon: arrowIcon }).addTo(map);
     }
   });
 

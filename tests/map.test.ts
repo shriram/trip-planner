@@ -4,6 +4,7 @@ import {
   extractTravelSegments,
   buildGeocodingQuery,
   getSegmentColor,
+  calculateBearing,
   calculateBounds,
   updateScheduleWithGeodata
 } from '../src/map.js';
@@ -181,19 +182,19 @@ describe('buildGeocodingQuery', () => {
 });
 
 describe('getSegmentColor', () => {
-  it('returns violet for first segment', () => {
+  it('returns blue-ish for first segment (hue 240)', () => {
     const color = getSegmentColor(0, 5);
-    // Violet at 270° should be something like #9933e6 range
+    // Blue at 240° should have high B component
     expect(color).toMatch(/^#[0-9a-f]{6}$/);
   });
 
-  it('returns red-ish for last segment', () => {
+  it('returns red-ish for last segment (hue 0)', () => {
     const color = getSegmentColor(4, 5);
-    // Red at 360° (or 0°) should be high R, low G/B
+    // Red at 0° should have high R component
     expect(color).toMatch(/^#[0-9a-f]{6}$/);
   });
 
-  it('returns violet for single segment', () => {
+  it('returns blue for single segment', () => {
     const color = getSegmentColor(0, 1);
     expect(color).toMatch(/^#[0-9a-f]{6}$/);
   });
@@ -204,7 +205,7 @@ describe('getSegmentColor', () => {
     expect(uniqueColors.size).toBe(5);
   });
 
-  it('interpolates smoothly across many segments', () => {
+  it('uses blue to red temperature gradient', () => {
     const colors = [];
     for (let i = 0; i < 20; i++) {
       colors.push(getSegmentColor(i, 20));
@@ -213,6 +214,37 @@ describe('getSegmentColor', () => {
     colors.forEach(c => expect(c).toMatch(/^#[0-9a-f]{6}$/));
     // First and last should be different
     expect(colors[0]).not.toBe(colors[19]);
+  });
+});
+
+describe('calculateBearing', () => {
+  it('returns 0 for due north', () => {
+    // Going north: lat increases, lng same
+    const bearing = calculateBearing(0, 0, 1, 0);
+    expect(bearing).toBeCloseTo(0, 5);
+  });
+
+  it('returns 90 for due east', () => {
+    // Going east: lat same, lng increases
+    const bearing = calculateBearing(0, 0, 0, 1);
+    expect(bearing).toBeCloseTo(90, 5);
+  });
+
+  it('returns 180 for due south', () => {
+    // Going south: lat decreases, lng same
+    const bearing = calculateBearing(1, 0, 0, 0);
+    expect(bearing).toBeCloseTo(180, 5);
+  });
+
+  it('returns 270 for due west', () => {
+    // Going west: lat same, lng decreases
+    const bearing = calculateBearing(0, 1, 0, 0);
+    expect(bearing).toBeCloseTo(270, 5);
+  });
+
+  it('returns 45 for northeast', () => {
+    const bearing = calculateBearing(0, 0, 1, 1);
+    expect(bearing).toBeCloseTo(45, 5);
   });
 });
 

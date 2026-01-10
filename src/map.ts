@@ -172,17 +172,36 @@ function hsvToHex(h: number, s: number, v: number): string {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-/** Get color for a segment, interpolating from violet (270°) to red (0°/360°) */
+/** Get color for a segment, using blue→red temperature gradient */
 export function getSegmentColor(segmentIndex: number, totalSegments: number): string {
   if (totalSegments <= 1) {
-    return hsvToHex(270, 0.8, 0.9);  // Violet for single segment
+    return hsvToHex(200, 0.8, 0.85);  // Blue for single segment
   }
 
-  // Interpolate from violet (270) to red (360), wrapping around
-  // violet = 270°, red = 360° (or 0°)
+  // Use blue (240°) → red (0°) temperature gradient
+  // This is intuitive: cool/early → warm/late in the journey
   const t = segmentIndex / (totalSegments - 1);
-  const hue = 270 + t * 90;  // 270 -> 360
-  return hsvToHex(hue % 360, 0.8, 0.9);
+  const hue = 240 - t * 240;  // 240 -> 0 (blue to red)
+  return hsvToHex(hue, 0.85, 0.75);
+}
+
+/** Calculate bearing (angle in degrees) from one point to another */
+export function calculateBearing(
+  fromLat: number,
+  fromLng: number,
+  toLat: number,
+  toLng: number
+): number {
+  const dx = toLng - fromLng;
+  const dy = toLat - fromLat;
+
+  // atan2 gives angle from positive X axis (east), but we want from north
+  // Also need to convert from radians to degrees
+  const angleRad = Math.atan2(dx, dy);
+  const angleDeg = angleRad * 180 / Math.PI;
+
+  // Normalize to 0-360
+  return (angleDeg + 360) % 360;
 }
 
 /** Calculate bounds that fit all geocoded locations */
