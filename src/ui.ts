@@ -41,11 +41,92 @@ import {
 
 type ScheduleUpdateHandler = (schedule: Schedule) => void;
 
+// Helper: navigate to same column in adjacent row
+// Sets pendingFocus on state so the next render will focus the target
+function navigateVertical(
+  state: UIState,
+  currentInput: HTMLInputElement,
+  direction: 'up' | 'down',
+  columnSelector: string
+): void {
+  const currentTr = currentInput.closest('tr');
+  if (!currentTr) return;
+
+  const tbody = currentTr.parentElement;
+  if (!tbody) return;
+
+  // Get current row index in the table body
+  const rows = Array.from(tbody.children) as HTMLTableRowElement[];
+  const currentIndex = rows.indexOf(currentTr as HTMLTableRowElement);
+  const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+
+  // Check bounds
+  if (targetIndex < 0 || targetIndex >= rows.length) return;
+
+  // Set pending focus for after re-render
+  state.pendingFocus = {
+    rowIndex: targetIndex,
+    columnSelector,
+    selectAll: true
+  };
+
+  // If there's no re-render pending, we need to apply focus now
+  // Use setTimeout to allow any change events to fire first
+  setTimeout(() => {
+    // If pendingFocus is still set, the render didn't happen, so focus directly
+    if (state.pendingFocus) {
+      const freshTbody = document.getElementById('schedule-body');
+      if (!freshTbody) return;
+
+      const freshRows = freshTbody.children;
+      if (targetIndex >= freshRows.length) return;
+
+      const freshTr = freshRows[targetIndex];
+      const freshInput = freshTr?.querySelector(columnSelector) as HTMLInputElement | null;
+
+      if (freshInput) {
+        freshInput.focus();
+        freshInput.setSelectionRange(0, freshInput.value.length);
+      }
+      state.pendingFocus = null;
+    }
+  }, 0);
+}
+
+// Add vertical arrow key navigation to a text input
+// Always navigate on up/down since these are single-line inputs
+function addArrowKeyNavigation(
+  state: UIState,
+  input: HTMLInputElement,
+  columnSelector: string
+): void {
+  input.addEventListener('keydown', (e) => {
+    // Only handle if this input is actually focused
+    if (document.activeElement !== input) return;
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      navigateVertical(state, input, 'up', columnSelector);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      navigateVertical(state, input, 'down', columnSelector);
+    }
+  });
+}
+
+// Pending focus info for arrow key navigation
+interface PendingFocus {
+  rowIndex: number;
+  columnSelector: string;
+  selectAll: boolean;
+}
+
 export interface UIState {
   schedule: Schedule;
   violations: Violation[];
   onUpdate: ScheduleUpdateHandler;
   focusRowId: string | null;
+  pendingFocus: PendingFocus | null;
 }
 
 // Create the UI controller
@@ -58,7 +139,8 @@ export function createUI(
     schedule: { rows: [] },
     violations: [],
     onUpdate: () => {},
-    focusRowId: null
+    focusRowId: null,
+    pendingFocus: null
   };
 
   return state;
@@ -90,6 +172,24 @@ export function renderTable(
       }
     }
     state.focusRowId = null;
+  }
+
+  // Handle pending focus from arrow key navigation
+  if (state.pendingFocus) {
+    const { rowIndex, columnSelector, selectAll } = state.pendingFocus;
+    state.pendingFocus = null;
+
+    const rows = tableBody.children;
+    if (rowIndex >= 0 && rowIndex < rows.length) {
+      const targetRow = rows[rowIndex];
+      const targetInput = targetRow?.querySelector(columnSelector) as HTMLInputElement | null;
+      if (targetInput) {
+        targetInput.focus();
+        if (selectAll) {
+          targetInput.setSelectionRange(0, targetInput.value.length);
+        }
+      }
+    }
   }
 }
 
@@ -299,6 +399,7 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
       }, 0);
     }
   });
+  addArrowKeyNavigation(state, daytimeInput, '.daytime-cell input');
   daytimeCell.appendChild(daytimeInput);
   tr.appendChild(daytimeCell);
 
@@ -329,6 +430,7 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
       }, 0);
     }
   });
+  addArrowKeyNavigation(state, nightInput, 'td:nth-child(5) input');
   nightCell.appendChild(nightInput);
   tr.appendChild(nightCell);
 
@@ -357,6 +459,7 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
       }, 0);
     }
   });
+  addArrowKeyNavigation(state, otherEventInput, 'td:nth-child(6) input');
   otherEventCell.appendChild(otherEventInput);
   tr.appendChild(otherEventCell);
 
@@ -390,6 +493,7 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
       }
     }
   });
+  addArrowKeyNavigation(state, otherLocationInput, 'td:nth-child(7) input');
   otherLocationCell.appendChild(otherLocationInput);
   tr.appendChild(otherLocationCell);
 
