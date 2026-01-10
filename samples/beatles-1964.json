@@ -231,7 +231,37 @@
       "attend": true
     }
   ],
-  "placeDisambiguations": {},
-  "geocodedPlaces": {},
+  "placeDisambiguations": {
+    "London": "England",
+    "Miami": "Florida, USA",
+    "New York": "NY, USA",
+    "Washington DC": "USA"
+  },
+  "geocodedPlaces": {
+    "London": {
+      "lat": 51.5074456,
+      "lng": -0.1277653,
+      "displayName": "Greater London, England, United Kingdom",
+      "query": "London, England"
+    },
+    "Miami": {
+      "lat": 25.7741566,
+      "lng": -80.1935973,
+      "displayName": "Miami, Miami-Dade County, Florida, United States",
+      "query": "Miami, Florida, USA"
+    },
+    "New York": {
+      "lat": 40.7127281,
+      "lng": -74.0060152,
+      "displayName": "New York, United States",
+      "query": "New York, NY, USA"
+    },
+    "Washington DC": {
+      "lat": 38.8950368,
+      "lng": -77.0365427,
+      "displayName": "Washington, District of Columbia, United States",
+      "query": "Washington DC, USA"
+    }
+  },
   "hiddenPlaces": {}
 }
