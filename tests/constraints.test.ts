@@ -177,6 +177,111 @@ describe('Constraint checking', () => {
     });
   });
 
+  describe('Pinned event location constraint', () => {
+    it('flags attending event when night location differs from event location', () => {
+      let schedule = createEmptySchedule();
+      const row = createRow(new Date(2024, 0, 8), {
+        night: some('Boston'),
+        otherEvent: some({ kind: 'organization', name: 'Conference' }),
+        otherLocation: some('NYC'),
+        attend: true
+      });
+      schedule = addRowToSchedule(schedule, row);
+
+      const violations = checkConstraints(schedule);
+      expect(violations.length).toBe(1);
+      expect(violations[0].type).toBe('pinned-event-location-mismatch');
+      expect(violations[0].message).toContain('NYC');
+      expect(violations[0].message).toContain('Boston');
+    });
+
+    it('flags attending event when no night location is set', () => {
+      let schedule = createEmptySchedule();
+      const row = createRow(new Date(2024, 0, 8), {
+        // night is none()
+        otherEvent: some({ kind: 'organization', name: 'Conference' }),
+        otherLocation: some('NYC'),
+        attend: true
+      });
+      schedule = addRowToSchedule(schedule, row);
+
+      const violations = checkConstraints(schedule);
+      expect(violations.length).toBe(1);
+      expect(violations[0].type).toBe('pinned-event-location-mismatch');
+      expect(violations[0].message).toContain('no night location');
+    });
+
+    it('allows attending event when locations match', () => {
+      let schedule = createEmptySchedule();
+      const row = createRow(new Date(2024, 0, 8), {
+        night: some('NYC'),
+        otherEvent: some({ kind: 'organization', name: 'Conference' }),
+        otherLocation: some('NYC'),
+        attend: true
+      });
+      schedule = addRowToSchedule(schedule, row);
+
+      const violations = checkConstraints(schedule);
+      expect(violations.length).toBe(0);
+    });
+
+    it('ignores non-attending events with location mismatch', () => {
+      let schedule = createEmptySchedule();
+      const row = createRow(new Date(2024, 0, 8), {
+        night: some('Boston'),
+        otherEvent: some({ kind: 'organization', name: 'Conference' }),
+        otherLocation: some('NYC'),
+        attend: false  // Not attending
+      });
+      schedule = addRowToSchedule(schedule, row);
+
+      const violations = checkConstraints(schedule);
+      expect(violations.length).toBe(0);
+    });
+
+    it('ignores attending events with no location specified', () => {
+      let schedule = createEmptySchedule();
+      const row = createRow(new Date(2024, 0, 8), {
+        night: some('Boston'),
+        otherEvent: some({ kind: 'organization', name: 'Conference' }),
+        // otherLocation is none()
+        attend: true
+      });
+      schedule = addRowToSchedule(schedule, row);
+
+      const violations = checkConstraints(schedule);
+      expect(violations.length).toBe(0);
+    });
+
+    it('ignores attending events with empty string location', () => {
+      let schedule = createEmptySchedule();
+      const row = createRow(new Date(2024, 0, 8), {
+        night: some('Boston'),
+        otherEvent: some({ kind: 'organization', name: 'Conference' }),
+        otherLocation: some(''),  // Empty string
+        attend: true
+      });
+      schedule = addRowToSchedule(schedule, row);
+
+      const violations = checkConstraints(schedule);
+      expect(violations.length).toBe(0);
+    });
+
+    it('ignores attending events with whitespace-only location', () => {
+      let schedule = createEmptySchedule();
+      const row = createRow(new Date(2024, 0, 8), {
+        night: some('Boston'),
+        otherEvent: some({ kind: 'organization', name: 'Conference' }),
+        otherLocation: some('   '),  // Whitespace only
+        attend: true
+      });
+      schedule = addRowToSchedule(schedule, row);
+
+      const violations = checkConstraints(schedule);
+      expect(violations.length).toBe(0);
+    });
+  });
+
   describe('Multiple violations', () => {
     it('detects multiple violations', () => {
       let schedule = createEmptySchedule();

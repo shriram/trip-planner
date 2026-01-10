@@ -18,7 +18,8 @@ import {
 
 export type ViolationType =
   | 'org-on-weekend'
-  | 'location-discontinuity';
+  | 'location-discontinuity'
+  | 'pinned-event-location-mismatch';
 
 export interface Violation {
   type: ViolationType;
@@ -77,6 +78,31 @@ export function checkConstraints(schedule: Schedule): Violation[] {
               message: `Travel "${travel.from} → ${travel.to}" doesn't connect "${prevNight}" to "${currNight}"`
             });
           }
+        }
+      }
+    }
+
+    // Constraint: Attending a pinned event requires being in that location
+    if (row.attend) {
+      const pinnedLocation = getOrDefault(row.otherLocation, '').trim();
+      const nightLocation = isSome(row.night) ? row.night.value.trim() : '';
+
+      // Only check if pinned location is specified
+      if (pinnedLocation !== '') {
+        if (nightLocation === '') {
+          violations.push({
+            type: 'pinned-event-location-mismatch',
+            rowIndex: i,
+            rowId: row.id,
+            message: `Attending event in "${pinnedLocation}" but no night location set on ${formatDate(row.date)}`
+          });
+        } else if (nightLocation !== pinnedLocation) {
+          violations.push({
+            type: 'pinned-event-location-mismatch',
+            rowIndex: i,
+            rowId: row.id,
+            message: `Attending event in "${pinnedLocation}" but staying in "${nightLocation}" on ${formatDate(row.date)}`
+          });
         }
       }
     }
