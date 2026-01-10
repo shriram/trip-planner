@@ -2,6 +2,10 @@
 
 A simple, offline-first tool for planning multi-city trips. Built for planning visits to companies, universities, conferences, or any itinerary where you need to track where you'll be each day and night.
 
+The tracker highlights weekends so you don't inadvertently put work meetings there, but it won't prevent you from doing it; sometimes that's the only day that makes sense!
+
+![Beatles 1964 US Tour](beatles-tour.png)
+
 ## What It Does
 
 - **Day-by-day scheduling**: Track your daytime activities (organization visits, travel, personal time) and where you're staying each night

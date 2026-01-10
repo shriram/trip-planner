@@ -1,0 +1,237 @@
+{
+  "version": 2,
+  "rows": [
+    {
+      "date": "1964-02-07",
+      "daytime": {
+        "set": true,
+        "value": {
+          "kind": "travel",
+          "from": "London",
+          "to": "New York"
+        }
+      },
+      "night": {
+        "set": true,
+        "value": "New York"
+      },
+      "otherEvent": {
+        "set": true,
+        "value": {
+          "kind": "organization",
+          "name": "JFK Airport Arrival"
+        }
+      },
+      "otherLocation": {
+        "set": true,
+        "value": "New York"
+      },
+      "attend": true
+    },
+    {
+      "date": "1964-02-08",
+      "daytime": {
+        "set": true,
+        "value": {
+          "kind": "personal"
+        }
+      },
+      "night": {
+        "set": true,
+        "value": "New York"
+      },
+      "otherEvent": {
+        "set": false
+      },
+      "otherLocation": {
+        "set": false
+      },
+      "attend": false
+    },
+    {
+      "date": "1964-02-09",
+      "daytime": {
+        "set": true,
+        "value": {
+          "kind": "organization",
+          "name": "Ed Sullivan Show"
+        }
+      },
+      "night": {
+        "set": true,
+        "value": "New York"
+      },
+      "otherEvent": {
+        "set": true,
+        "value": {
+          "kind": "organization",
+          "name": "Ed Sullivan Show"
+        }
+      },
+      "otherLocation": {
+        "set": true,
+        "value": "New York"
+      },
+      "attend": true
+    },
+    {
+      "date": "1964-02-10",
+      "daytime": {
+        "set": true,
+        "value": {
+          "kind": "personal"
+        }
+      },
+      "night": {
+        "set": true,
+        "value": "New York"
+      },
+      "otherEvent": {
+        "set": false
+      },
+      "otherLocation": {
+        "set": false
+      },
+      "attend": false
+    },
+    {
+      "date": "1964-02-11",
+      "daytime": {
+        "set": true,
+        "value": {
+          "kind": "travel",
+          "from": "New York",
+          "to": "Washington DC"
+        }
+      },
+      "night": {
+        "set": true,
+        "value": "Washington DC"
+      },
+      "otherEvent": {
+        "set": false
+      },
+      "otherLocation": {
+        "set": false
+      },
+      "attend": false
+    },
+    {
+      "date": "1964-02-12",
+      "daytime": {
+        "set": true,
+        "value": {
+          "kind": "organization",
+          "name": "Washington Coliseum"
+        }
+      },
+      "night": {
+        "set": true,
+        "value": "Washington DC"
+      },
+      "otherEvent": {
+        "set": true,
+        "value": {
+          "kind": "organization",
+          "name": "First US Concert"
+        }
+      },
+      "otherLocation": {
+        "set": true,
+        "value": "Washington DC"
+      },
+      "attend": true
+    },
+    {
+      "date": "1964-02-13",
+      "daytime": {
+        "set": true,
+        "value": {
+          "kind": "travel",
+          "from": "Washington DC",
+          "to": "Miami"
+        }
+      },
+      "night": {
+        "set": true,
+        "value": "Miami"
+      },
+      "otherEvent": {
+        "set": false
+      },
+      "otherLocation": {
+        "set": false
+      },
+      "attend": false
+    },
+    {
+      "date": "1964-02-14",
+      "daytime": {
+        "set": true,
+        "value": {
+          "kind": "personal"
+        }
+      },
+      "night": {
+        "set": true,
+        "value": "Miami"
+      },
+      "otherEvent": {
+        "set": false
+      },
+      "otherLocation": {
+        "set": false
+      },
+      "attend": false
+    },
+    {
+      "date": "1964-02-15",
+      "daytime": {
+        "set": true,
+        "value": {
+          "kind": "personal"
+        }
+      },
+      "night": {
+        "set": true,
+        "value": "Miami"
+      },
+      "otherEvent": {
+        "set": false
+      },
+      "otherLocation": {
+        "set": false
+      },
+      "attend": false
+    },
+    {
+      "date": "1964-02-16",
+      "daytime": {
+        "set": true,
+        "value": {
+          "kind": "organization",
+          "name": "Ed Sullivan Show"
+        }
+      },
+      "night": {
+        "set": true,
+        "value": "Miami"
+      },
+      "otherEvent": {
+        "set": true,
+        "value": {
+          "kind": "organization",
+          "name": "Ed Sullivan (Miami)"
+        }
+      },
+      "otherLocation": {
+        "set": true,
+        "value": "Miami"
+      },
+      "attend": true
+    }
+  ],
+  "placeDisambiguations": {},
+  "geocodedPlaces": {},
+  "hiddenPlaces": {}
+}
