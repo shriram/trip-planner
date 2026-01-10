@@ -159,6 +159,27 @@ describe('Constraint checking', () => {
       expect(violations.length).toBe(0);
     });
 
+    it('flags travel with wrong origin when night locations match', () => {
+      // Already in PVD, can't travel from London
+      let schedule = createEmptySchedule();
+      const row1 = createRow(new Date(2024, 0, 8), {
+        night: some('PVD'),
+        daytime: some({ kind: 'travel', from: 'London', to: 'PVD' })
+      });
+      const row2 = createRow(new Date(2024, 0, 9), {
+        night: some('PVD'),
+        daytime: some({ kind: 'travel', from: 'London', to: 'PVD' })
+      });
+      schedule = addRowToSchedule(schedule, row1);
+      schedule = addRowToSchedule(schedule, row2);
+
+      const violations = checkConstraints(schedule);
+      expect(violations.length).toBe(1);
+      expect(violations[0].type).toBe('location-discontinuity');
+      expect(violations[0].message).toContain('London');
+      expect(violations[0].message).toContain('PVD');
+    });
+
     it('ignores unset locations', () => {
       let schedule = createEmptySchedule();
       const row1 = createRow(new Date(2024, 0, 8), {

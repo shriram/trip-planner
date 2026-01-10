@@ -79,6 +79,17 @@ export function checkConstraints(schedule: Schedule): Violation[] {
             });
           }
         }
+      } else if (isTravel(row.daytime) && prevNight !== '') {
+        // Locations are same (or currNight empty), but there's travel - check origin matches
+        const travel = daytimeValue as { kind: 'travel'; from: string; to: string };
+        if (travel.from !== prevNight) {
+          violations.push({
+            type: 'location-discontinuity',
+            rowIndex: i,
+            rowId: row.id,
+            message: `Travel from "${travel.from}" but previous night was "${prevNight}" on ${formatDate(row.date)}`
+          });
+        }
       }
     }
 

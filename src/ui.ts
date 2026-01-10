@@ -247,13 +247,14 @@ function handleDaytimeChange(
   state.schedule = updateRowInSchedule(state.schedule, row.id, updates);
 
   // Rule 3: Check if this creates a "personal between different locations" situation
-  // and offer to convert to travel
+  // and offer to change the night location to match the previous night
   checkPersonalBetweenLocations(state, row.id);
 
   state.onUpdate(state.schedule);
 }
 
 // Check if a personal day is sandwiched between different locations
+// Offers to change the night location to match the previous night
 function checkPersonalBetweenLocations(state: UIState, rowId: string): void {
   const index = getRowIndex(state.schedule, rowId);
   const row = state.schedule.rows[index];
@@ -263,13 +264,15 @@ function checkPersonalBetweenLocations(state: UIState, rowId: string): void {
   const prevNight = getPrevNight(state, rowId);
   const currNight = isSome(row.night) ? row.night.value : null;
 
-  // If current night differs from prev night, suggest travel
+  // If current night differs from prev night, offer to change night to match previous
   if (prevNight && currNight && prevNight !== currNight) {
-    if (confirm(`Previous night is "${prevNight}", current night is "${currNight}". Change to travel "${prevNight} → ${currNight}"?`)) {
+    if (confirm(`Previous night was "${prevNight}", but current night is "${currNight}". Change night to "${prevNight}"?`)) {
       state.schedule = updateRowInSchedule(state.schedule, rowId, {
-        daytime: some({ kind: 'travel', from: prevNight, to: currNight })
+        night: some(prevNight)
       });
     }
+    // If user clicks Cancel, do nothing - keep daytime as personal and night as-is
+    // (constraint checker will flag the location discontinuity)
   }
 }
 
@@ -426,8 +429,8 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
     state.schedule = updateRowInSchedule(state.schedule, row.id, {
       night: newNight ? some(newNight) : none()
     });
-    // After changing night, check if personal day needs to become travel
-    checkPersonalBetweenLocations(state, row.id);
+    // Note: Don't call checkPersonalBetweenLocations here - user explicitly changed night,
+    // so we shouldn't offer to change it back. Constraint checker will flag any issues.
     state.onUpdate(state.schedule);
   });
   nightInput.addEventListener('keydown', (e) => {
