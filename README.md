@@ -19,7 +19,7 @@ A simple, offline-first tool for planning multi-city trips. Built for planning v
 ## How to Use
 
 1. Open `index.html` in a browser
-2. Use the date column to set your trip's starting date (which you can change, and also insert rows above/below as needed)
+2. Use the date column to set your trip's starting date (years 1900-2099 are supported; you can change this date, and also insert rows above/below as needed)
 3. Fill in each day:
    - **Daytime**: Type an organization name, `personal`, or travel in the form `Boston -> NYC`, `Boston --> NYC`, `Boston → NYC`, or `Boston ⭢ NYC`
    - **Night**: Where you're staying that night

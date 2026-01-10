@@ -64,8 +64,10 @@ describe('Date utilities', () => {
   });
 
   it('isValidYear validates year range', () => {
-    expect(isValidYear(new Date(2000, 0, 1))).toBe(false);
-    expect(isValidYear(new Date(2001, 0, 1))).toBe(true);
+    expect(isValidYear(new Date(1899, 0, 1))).toBe(false);
+    expect(isValidYear(new Date(1900, 0, 1))).toBe(true);
+    expect(isValidYear(new Date(1969, 6, 20))).toBe(true); // Apollo 11 moon landing
+    expect(isValidYear(new Date(2024, 0, 1))).toBe(true);
     expect(isValidYear(new Date(2099, 0, 1))).toBe(true);
     expect(isValidYear(new Date(2100, 0, 1))).toBe(false);
   });
@@ -108,8 +110,24 @@ describe('Date utilities', () => {
   it('parseDate rejects invalid dates', () => {
     expect(parseDate('invalid')).toBeNull();
     expect(parseDate('2024/03/15')).toBeNull();
-    expect(parseDate('1999-01-01')).toBeNull(); // Before 2001
+    expect(parseDate('1899-01-01')).toBeNull(); // Before 1900
     expect(parseDate('2100-01-01')).toBeNull(); // After 2099
+  });
+
+  it('parseDate accepts historical dates', () => {
+    const apolloDate = parseDate('1969-07-20');
+    expect(apolloDate).not.toBeNull();
+    expect(formatDate(apolloDate!)).toBe('1969-07-20');
+    expect(getDayOfWeek(apolloDate!)).toBe('Sun'); // Apollo 11 landed on a Sunday
+  });
+
+  it('handles leap years correctly for historical dates', () => {
+    // 1900 was NOT a leap year (divisible by 100 but not 400)
+    expect(formatDate(addDays(new Date(1900, 1, 28), 1))).toBe('1900-03-01');
+    // 2000 WAS a leap year (divisible by 400)
+    expect(formatDate(addDays(new Date(2000, 1, 28), 1))).toBe('2000-02-29');
+    // 1904 was a leap year (divisible by 4)
+    expect(formatDate(addDays(new Date(1904, 1, 28), 1))).toBe('1904-02-29');
   });
 });
 

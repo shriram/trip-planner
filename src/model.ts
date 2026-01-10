@@ -74,7 +74,7 @@ export function isWeekend(date: Date): boolean {
 
 export function isValidYear(date: Date): boolean {
   const year = date.getFullYear();
-  return year > 2000 && year < 2100;
+  return year >= 1900 && year <= 2099;
 }
 
 export function addDays(date: Date, days: number): Date {

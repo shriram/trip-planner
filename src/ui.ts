@@ -363,6 +363,10 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
         recalculateDatesInState(state);
         state.onUpdate(state.schedule);
       }
+    } else {
+      // Invalid date - show error and revert to original value
+      alert('Invalid date. Year must be between 1900 and 2099.');
+      dateInput.value = formatDate(row.date);
     }
   });
   // Only first row's date is editable
