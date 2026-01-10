@@ -6,7 +6,6 @@ import {
   DaytimeType,
   Option,
   createRow,
-  addRowToSchedule,
   removeRowFromSchedule,
   updateRowInSchedule,
   insertRowAtIndex,
@@ -551,16 +550,6 @@ export function updateState(
   state.schedule = schedule;
   state.violations = checkConstraints(schedule);
   renderTable(state, tableBody, constraintPanel, violationList);
-}
-
-// Add a new row at the end
-export function addRow(state: UIState): void {
-  const lastRow = state.schedule.rows[state.schedule.rows.length - 1];
-  const newDate = lastRow ? addDays(lastRow.date, 1) : new Date();
-  const newRow = createRow(newDate);
-  state.schedule = addRowToSchedule(state.schedule, newRow);
-  state.focusRowId = newRow.id;
-  state.onUpdate(state.schedule);
 }
 
 // Copy schedule to clipboard as JSON

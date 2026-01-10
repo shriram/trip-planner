@@ -5,7 +5,6 @@ import { checkConstraints } from './constraints.js';
 import {
   createUI,
   updateState,
-  addRow,
   copyToClipboard,
   pasteFromClipboard,
   copyHtmlToClipboard,
@@ -16,7 +15,6 @@ function main(): void {
   const tableBody = document.getElementById('schedule-body') as HTMLTableSectionElement;
   const constraintPanel = document.getElementById('constraint-panel') as HTMLElement;
   const violationList = document.getElementById('violation-list') as HTMLUListElement;
-  const addRowBtn = document.getElementById('add-row') as HTMLButtonElement;
   const copyBtn = document.getElementById('copy-data') as HTMLButtonElement;
   const pasteBtn = document.getElementById('paste-data') as HTMLButtonElement;
   const printBtn = document.getElementById('print-btn') as HTMLButtonElement;
@@ -45,10 +43,6 @@ function main(): void {
   updateState(state, state.schedule, tableBody, constraintPanel, violationList);
 
   // Button handlers
-  addRowBtn?.addEventListener('click', () => {
-    addRow(state);
-  });
-
   copyBtn?.addEventListener('click', async () => {
     const success = await copyToClipboard(state.schedule);
     if (success) {
