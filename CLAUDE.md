@@ -31,7 +31,7 @@ TECH STACK
 PROJECT STRUCTURE
 - src/model.ts - data types, Option<T>, date utilities, serialization, pretty-print
 - src/constraints.ts - constraint checking and repair suggestions
-- src/ui.ts - DOM manipulation, smart auto-fill behaviors
+- src/ui.ts - DOM manipulation, smart auto-fill behaviors, keyboard navigation
 - src/main.ts - entry point
 - tests/ - vitest tests for model and constraints
 

@@ -45,6 +45,7 @@ UI NOTES
 - Weekend rows: only Date and Day columns are highlighted (light yellow)
 - Row actions: ↑+ (insert above), ↓+ (insert below), × (delete)
 - Deleting/inserting rows recalculates all dates from first row
+- Keyboard: Enter moves right within row; Arrow up/down navigates same column (auto-selects text)
 
 FUTURE ENHANCEMENTS
 - Support for split days (e.g., org visit in AM + travel in PM)
