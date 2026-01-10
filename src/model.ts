@@ -347,9 +347,9 @@ export function deserializeSchedule(json: string): Schedule | null {
   }
 }
 
-// Pretty print for email
+// Print to HTML (for email)
 
-export function prettyPrintSchedule(schedule: Schedule): string {
+export function printToHtml(schedule: Schedule): string {
   if (schedule.rows.length === 0) {
     return '<p><em>No schedule data</em></p>';
   }
@@ -380,4 +380,25 @@ export function prettyPrintSchedule(schedule: Schedule): string {
 
   html += '</tbody></table>';
   return html;
+}
+
+// Print to Markdown (GitHub flavored, for Obsidian)
+
+export function printToMarkdown(schedule: Schedule): string {
+  if (schedule.rows.length === 0) {
+    return '*No schedule data*';
+  }
+
+  let md = '| Date | Day | Daytime | Night |\n';
+  md += '|------|-----|---------|-------|\n';
+
+  for (const row of schedule.rows) {
+    const day = getDayOfWeek(row.date);
+    const daytimeValue = getDaytimeValue(row.daytime);
+    const nightValue = getOrDefault(row.night, '');
+
+    md += `| ${formatDate(row.date)} | ${day} | ${formatDaytime(daytimeValue)} | ${nightValue} |\n`;
+  }
+
+  return md;
 }

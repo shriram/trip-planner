@@ -8,7 +8,8 @@ import {
   addRow,
   copyToClipboard,
   pasteFromClipboard,
-  copyPrettyPrint
+  copyHtmlToClipboard,
+  copyMarkdownToClipboard
 } from './ui.js';
 
 function main(): void {
@@ -18,7 +19,10 @@ function main(): void {
   const addRowBtn = document.getElementById('add-row') as HTMLButtonElement;
   const copyBtn = document.getElementById('copy-data') as HTMLButtonElement;
   const pasteBtn = document.getElementById('paste-data') as HTMLButtonElement;
-  const prettyPrintBtn = document.getElementById('pretty-print') as HTMLButtonElement;
+  const printBtn = document.getElementById('print-btn') as HTMLButtonElement;
+  const printDropdown = document.getElementById('print-dropdown')?.parentElement as HTMLElement;
+  const printHtmlBtn = document.getElementById('print-html') as HTMLAnchorElement;
+  const printMarkdownBtn = document.getElementById('print-markdown') as HTMLAnchorElement;
 
   if (!tableBody || !constraintPanel || !violationList) {
     console.error('Required DOM elements not found');
@@ -66,13 +70,38 @@ function main(): void {
     }
   });
 
-  prettyPrintBtn?.addEventListener('click', async () => {
-    const success = await copyPrettyPrint(state.schedule);
+  // Print dropdown toggle
+  printBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    printDropdown?.classList.toggle('open');
+  });
+
+  // Close dropdown when clicking elsewhere
+  document.addEventListener('click', () => {
+    printDropdown?.classList.remove('open');
+  });
+
+  printHtmlBtn?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    printDropdown?.classList.remove('open');
+    const success = await copyHtmlToClipboard(state.schedule);
     if (success) {
-      prettyPrintBtn.textContent = 'Copied HTML!';
-      setTimeout(() => { prettyPrintBtn.textContent = 'Pretty Print'; }, 1500);
+      printBtn.textContent = 'Copied HTML!';
+      setTimeout(() => { printBtn.textContent = 'Print ▾'; }, 1500);
     } else {
-      alert('Failed to copy pretty print to clipboard');
+      alert('Failed to copy HTML to clipboard');
+    }
+  });
+
+  printMarkdownBtn?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    printDropdown?.classList.remove('open');
+    const success = await copyMarkdownToClipboard(state.schedule);
+    if (success) {
+      printBtn.textContent = 'Copied MD!';
+      setTimeout(() => { printBtn.textContent = 'Print ▾'; }, 1500);
+    } else {
+      alert('Failed to copy Markdown to clipboard');
     }
   });
 }

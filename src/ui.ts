@@ -20,7 +20,8 @@ import {
   addDays,
   serializeSchedule,
   deserializeSchedule,
-  prettyPrintSchedule,
+  printToHtml,
+  printToMarkdown,
   isPersonal,
   isTravel,
   getDaytimeValue,
@@ -479,9 +480,9 @@ export async function pasteFromClipboard(): Promise<Schedule | null> {
   }
 }
 
-// Copy pretty-printed HTML to clipboard
-export async function copyPrettyPrint(schedule: Schedule): Promise<boolean> {
-  const html = prettyPrintSchedule(schedule);
+// Copy HTML to clipboard (for email)
+export async function copyHtmlToClipboard(schedule: Schedule): Promise<boolean> {
+  const html = printToHtml(schedule);
   try {
     const blob = new Blob([html], { type: 'text/html' });
     const item = new ClipboardItem({ 'text/html': blob });
@@ -495,5 +496,16 @@ export async function copyPrettyPrint(schedule: Schedule): Promise<boolean> {
     } catch {
       return false;
     }
+  }
+}
+
+// Copy Markdown to clipboard (for Obsidian)
+export async function copyMarkdownToClipboard(schedule: Schedule): Promise<boolean> {
+  const md = printToMarkdown(schedule);
+  try {
+    await navigator.clipboard.writeText(md);
+    return true;
+  } catch {
+    return false;
   }
 }

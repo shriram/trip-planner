@@ -177,3 +177,44 @@ tr.violation td {
 #violation-list li:last-child {
   border-bottom: none;
 }
+
+/* Dropdown */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background: #fff;
+  min-width: 160px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  border-radius: 4px;
+  z-index: 100;
+}
+
+.dropdown-content a {
+  display: block;
+  padding: 8px 12px;
+  text-decoration: none;
+  color: #333;
+  font-size: 12px;
+}
+
+.dropdown-content a:hover {
+  background: #f0f0f0;
+}
+
+.dropdown-content a:first-child {
+  border-radius: 4px 4px 0 0;
+}
+
+.dropdown-content a:last-child {
+  border-radius: 0 0 4px 4px;
+}
+
+.dropdown.open .dropdown-content {
+  display: block;
+}
