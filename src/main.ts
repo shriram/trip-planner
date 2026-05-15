@@ -89,8 +89,7 @@ function main(): void {
   state.violations = checkConstraints(state.schedule);
   updateState(state, state.schedule, tableBody, constraintPanel, violationList);
 
-  // Export button handler
-  exportBtn?.addEventListener('click', async () => {
+  async function doExport(): Promise<void> {
     const success = await copyToClipboard(state.schedule);
     if (success) {
       dirtyTracker.markClean();
@@ -98,14 +97,10 @@ function main(): void {
     } else {
       alert('Failed to copy to clipboard');
     }
-  });
+  }
 
-  // Import button handler
-  importBtn?.addEventListener('click', async () => {
-    // Warn if there are unsaved changes
-    if (!dirtyTracker.confirmPasteIfDirty(confirm)) {
-      return;
-    }
+  async function doImport(): Promise<void> {
+    if (!dirtyTracker.confirmPasteIfDirty(confirm)) return;
     const schedule = await pasteFromClipboard();
     if (schedule) {
       dirtyTracker.markClean();
@@ -115,6 +110,25 @@ function main(): void {
       updateDirtyIndicator();
     } else {
       alert('Failed to import: invalid or no JSON data in clipboard');
+    }
+  }
+
+  exportBtn?.addEventListener('click', doExport);
+  importBtn?.addEventListener('click', doImport);
+
+  // Keyboard shortcuts: Cmd/Ctrl+C to export, Cmd/Ctrl+V to import
+  // Only fire when focus is not in a text field (where copy/paste should work normally)
+  document.addEventListener('keydown', (e) => {
+    const active = document.activeElement;
+    if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) return;
+    if (!(e.metaKey || e.ctrlKey)) return;
+
+    if (e.key === 'c') {
+      e.preventDefault();
+      doExport();
+    } else if (e.key === 'v') {
+      e.preventDefault();
+      doImport();
     }
   });
 
