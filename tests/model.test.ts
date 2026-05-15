@@ -145,6 +145,13 @@ describe('Daytime parsing', () => {
     expect(parseDaytime('PERSONAL')).toEqual({ kind: 'personal' });
   });
 
+  it('parses personal with suffix', () => {
+    expect(parseDaytime('personal in NYC')).toEqual({ kind: 'personal', suffix: 'in NYC' });
+    expect(parseDaytime('personal AT home')).toEqual({ kind: 'personal', suffix: 'AT home' });
+    expect(parseDaytime('Personal - rest day')).toEqual({ kind: 'personal', suffix: '- rest day' });
+    expect(parseDaytime('PERSONAL (visiting family)')).toEqual({ kind: 'personal', suffix: '(visiting family)' });
+  });
+
   it('parses travel with various arrows', () => {
     expect(parseDaytime('Boston --> NYC')).toEqual({ kind: 'travel', from: 'Boston', to: 'NYC' });
     expect(parseDaytime('Boston -> NYC')).toEqual({ kind: 'travel', from: 'Boston', to: 'NYC' });
@@ -160,8 +167,16 @@ describe('Daytime parsing', () => {
   it('formatDaytime formats correctly', () => {
     expect(formatDaytime({ kind: 'empty' })).toBe('');
     expect(formatDaytime({ kind: 'personal' })).toBe('personal');
+    expect(formatDaytime({ kind: 'personal', suffix: 'in NYC' })).toBe('personal in NYC');
     expect(formatDaytime({ kind: 'travel', from: 'A', to: 'B' })).toBe('A → B');
     expect(formatDaytime({ kind: 'organization', name: 'MIT' })).toBe('MIT');
+  });
+
+  it('parseDaytime/formatDaytime round-trips personal with suffix', () => {
+    const inputs = ['personal in NYC', 'personal AT home', 'personal - rest day'];
+    for (const input of inputs) {
+      expect(formatDaytime(parseDaytime(input))).toBe(input);
+    }
   });
 });
 

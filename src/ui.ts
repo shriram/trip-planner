@@ -392,7 +392,7 @@ function createRowElement(row: ScheduleRow, state: UIState): HTMLTableRowElement
   const daytimeInput = document.createElement('input');
   daytimeInput.type = 'text';
   daytimeInput.value = formatDaytime(daytimeValue);
-  daytimeInput.placeholder = 'org, city→city, or personal';
+  daytimeInput.placeholder = 'org, city→city, or personal...';
   daytimeInput.addEventListener('change', () => {
     const newDaytime = parseDaytime(daytimeInput.value);
     handleDaytimeChange(state, row.id, newDaytime);

@@ -28,7 +28,7 @@ export function getOrDefault<T>(opt: Option<T>, defaultValue: T): T {
 export type DaytimeType =
   | { kind: 'travel'; from: string; to: string }
   | { kind: 'organization'; name: string }
-  | { kind: 'personal' }
+  | { kind: 'personal'; suffix?: string }
   | { kind: 'empty' };
 
 export interface ScheduleRow {
@@ -114,7 +114,10 @@ const TRAVEL_ARROW_REGEX = /^(.+?)\s*(?:-->|->|→|⭢)\s*(.+)$/;
 export function parseDaytime(str: string): DaytimeType {
   const trimmed = str.trim();
   if (trimmed === '') return { kind: 'empty' };
-  if (trimmed.toLowerCase() === 'personal') return { kind: 'personal' };
+  if (trimmed.toLowerCase().startsWith('personal')) {
+    const suffix = trimmed.slice('personal'.length).trim();
+    return suffix ? { kind: 'personal', suffix } : { kind: 'personal' };
+  }
 
   const travelMatch = trimmed.match(TRAVEL_ARROW_REGEX);
   if (travelMatch) {
@@ -127,7 +130,7 @@ export function parseDaytime(str: string): DaytimeType {
 export function formatDaytime(daytime: DaytimeType): string {
   switch (daytime.kind) {
     case 'empty': return '';
-    case 'personal': return 'personal';
+    case 'personal': return daytime.suffix ? `personal ${daytime.suffix}` : 'personal';
     case 'travel': return `${daytime.from} → ${daytime.to}`;
     case 'organization': return daytime.name;
   }
@@ -274,6 +277,7 @@ interface SerializedDaytime {
   from?: string;
   to?: string;
   name?: string;
+  suffix?: string;
 }
 
 interface SerializedOption<T> {
@@ -308,7 +312,7 @@ interface SerializedSchedule {
 function serializeDaytime(daytime: DaytimeType): SerializedDaytime {
   switch (daytime.kind) {
     case 'empty': return { kind: 'empty' };
-    case 'personal': return { kind: 'personal' };
+    case 'personal': return daytime.suffix ? { kind: 'personal', suffix: daytime.suffix } : { kind: 'personal' };
     case 'travel': return { kind: 'travel', from: daytime.from, to: daytime.to };
     case 'organization': return { kind: 'organization', name: daytime.name };
   }
@@ -317,7 +321,7 @@ function serializeDaytime(daytime: DaytimeType): SerializedDaytime {
 function deserializeDaytime(data: SerializedDaytime): DaytimeType {
   switch (data.kind) {
     case 'empty': return { kind: 'empty' };
-    case 'personal': return { kind: 'personal' };
+    case 'personal': return data.suffix ? { kind: 'personal', suffix: data.suffix } : { kind: 'personal' };
     case 'travel': return { kind: 'travel', from: data.from ?? '', to: data.to ?? '' };
     case 'organization': return { kind: 'organization', name: data.name ?? '' };
   }
