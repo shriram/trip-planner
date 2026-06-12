@@ -5,11 +5,14 @@
   "scripts": {
     "build": "tsc && esbuild src/main.ts --bundle --outfile=dist/bundle.js --format=esm",
     "watch": "esbuild src/main.ts --bundle --outfile=dist/bundle.js --format=esm --watch",
+    "build:tui": "esbuild src/tui-main.ts --bundle --platform=node --format=esm --outfile=dist/tui.js",
+    "tui": "npm run build:tui && node dist/tui.js",
     "serve": "npx serve .",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@types/node": "^25.9.3",
     "esbuild": "^0.20.0",
     "typescript": "^5.3.0",
     "vitest": "^1.2.0"
