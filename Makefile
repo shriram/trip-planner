@@ -1,4 +1,18 @@
-.PHONY: serve stop build test
+.PHONY: help serve stop build test tui
+
+# No default action: `make` with no target prints this menu. `tui` is listed
+# first as the recommended way to run the planner.
+.DEFAULT_GOAL := help
+help:
+	@echo "Trip Planner — make targets:"
+	@echo ""
+	@echo "  tui     ▶ run the terminal UI            (make tui [FILE=Trips/x.json])"
+	@echo "  serve     run the web UI in a browser"
+	@echo "  stop      stop the web server"
+	@echo "  build     build the web bundle"
+	@echo "  test      run the test suite"
+	@echo ""
+	@echo "Run a target with:  make <target>"
 
 PORT_FILE := .server-port
 PID_FILE := .server-pid
@@ -25,6 +39,11 @@ stop:
 
 build:
 	npm run build
+
+# Build and launch the terminal UI. Pass a file with: make tui FILE=Trips/x.json
+tui:
+	npm run build:tui
+	node dist/tui.js $(FILE)
 
 test:
 	npm test
